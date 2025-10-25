@@ -251,7 +251,6 @@ function initWriteBox() {
       return
     }
     
-    event.stopPropagation()
     console.log('[Selection] ✅ Non-pet element, continuing text selection processing')
     
     setTimeout(() => {
