@@ -1,0 +1,17 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* 自定义工具类 */
+@layer utilities {
+  .write-box-highlight {
+    background-color: rgba(255, 237, 160, 0.5);
+    border-bottom: 2px solid #fbbf24;
+    cursor: pointer;
+  }
+  
+  .write-box-highlight:hover {
+    background-color: rgba(255, 237, 160, 0.8);
+  }
+}
+

@@ -1,0 +1,269 @@
+import browser from 'webextension-polyfill'
+import type { GPTBalance, RewardRecord, Task } from '@/types/task'
+
+// storage keys
+const STORAGE_KEYS = {
+  GPT_BALANCE: 'gpt_balance',
+  REWARD_RECORDS: 'reward_records',
+  TASKS: 'tasks'
+}
+
+/**
+ * Retrieve GPT balance
+ */
+export async function getGPTBalance(): Promise<GPTBalance> {
+  try {
+    const result = await browser.storage.local.get(STORAGE_KEYS.GPT_BALANCE)
+    if (result[STORAGE_KEYS.GPT_BALANCE]) {
+      return JSON.parse(result[STORAGE_KEYS.GPT_BALANCE])
+    }
+    // default balance
+    return {
+      total: 0,
+      lastUpdate: Date.now()
+    }
+  } catch (error) {
+    console.error('[Reward] Failed to obtain GPT balance:', error)
+    return { total: 0, lastUpdate: Date.now() }
+  }
+}
+
+/**
+ * Update GPT balance
+ */
+export async function updateGPTBalance(amount: number): Promise<GPTBalance> {
+  try {
+    const balance = await getGPTBalance()
+    balance.total += amount
+    balance.lastUpdate = Date.now()
+    
+    await browser.storage.local.set({
+      [STORAGE_KEYS.GPT_BALANCE]: JSON.stringify(balance)
+    })
+    
+    console.log('[Reward] GPT balance updated:', balance.total)
+    return balance
+  } catch (error) {
+    console.error('[Reward] Failed to update GPT balance:', error)
+    throw error
+  }
+}
+
+/**
+ * Add reward record
+ */
+export async function addRewardRecord(record: Omit<RewardRecord, 'id' | 'timestamp'>): Promise<RewardRecord> {
+  try {
+    const newRecord: RewardRecord = {
+      ...record,
+      id: `reward_${Date.now()}`,
+      timestamp: Date.now()
+    }
+    
+    const result = await browser.storage.local.get(STORAGE_KEYS.REWARD_RECORDS)
+    const records: RewardRecord[] = result[STORAGE_KEYS.REWARD_RECORDS] 
+      ? JSON.parse(result[STORAGE_KEYS.REWARD_RECORDS]) 
+      : []
+    
+    records.push(newRecord)
+    
+    // keep only the latest 100 records
+    if (records.length > 100) {
+      records.splice(0, records.length - 100)
+    }
+    
+    await browser.storage.local.set({
+      [STORAGE_KEYS.REWARD_RECORDS]: JSON.stringify(records)
+    })
+    
+    console.log('[Reward] Reward record added:', newRecord)
+    return newRecord
+  } catch (error) {
+    console.error('[Reward] Failed to add reward record:', error)
+    throw error
+  }
+}
+
+/**
+ * Retrieve reward records
+ */
+export async function getRewardRecords(): Promise<RewardRecord[]> {
+  try {
+    const result = await browser.storage.local.get(STORAGE_KEYS.REWARD_RECORDS)
+    if (result[STORAGE_KEYS.REWARD_RECORDS]) {
+      return JSON.parse(result[STORAGE_KEYS.REWARD_RECORDS])
+    }
+    return []
+  } catch (error) {
+    console.error('[Reward] Failed to retrieve reward records:', error)
+    return []
+  }
+}
+
+/**
+ * Persist task list
+ */
+export async function saveTasks(tasks: Task[]): Promise<void> {
+  try {
+    await browser.storage.local.set({
+      [STORAGE_KEYS.TASKS]: JSON.stringify(tasks)
+    })
+    console.log('[Reward] Task list saved')
+  } catch (error) {
+    console.error('[Reward] Failed to save task list:', error)
+    throw error
+  }
+}
+
+/**
+ * Retrieve task list
+ */
+export async function getTasks(): Promise<Task[]> {
+  try {
+    const result = await browser.storage.local.get(STORAGE_KEYS.TASKS)
+    if (result[STORAGE_KEYS.TASKS]) {
+      return JSON.parse(result[STORAGE_KEYS.TASKS])
+    }
+    // return default tasks
+    return getDefaultTasks()
+  } catch (error) {
+    console.error('[Reward] Failed to retrieve task list:', error)
+    return getDefaultTasks()
+  }
+}
+
+/**
+ * Retrieve default task configuration
+ */
+export function getDefaultTasks(): Task[] {
+  return [
+    {
+      id: 'task_x',
+      type: 'visit',
+      platform: 'x',
+      title: 'Visit X (Twitter)',
+      description: 'Earn GPT by spending time on X',
+      milestones: [
+        { duration: 20, reward: 50, claimed: false }, // 20 seconds -> 50 GPT (quick test)
+        { duration: 2 * 60, reward: 100, claimed: false }, // 2 minutes -> 100 GPT
+        { duration: 10 * 60, reward: 700, claimed: false } // 10 minutes -> 700 GPT
+      ],
+      currentDuration: 0,
+      isActive: false
+    },
+    {
+      id: 'task_youtube',
+      type: 'watch',
+      platform: 'youtube',
+      title: 'Watch YouTube',
+      description: 'Earn GPT by watching videos',
+      milestones: [
+        { duration: 1 * 60, reward: 100, claimed: false }, // 1 minute -> 100 GPT
+        { duration: 5 * 60, reward: 500, claimed: false } // 5 minutes -> 500 GPT
+      ],
+      currentDuration: 0,
+      isActive: false
+    }
+  ]
+}
+
+/**
+ * Update task progress
+ */
+export async function updateTaskProgress(taskId: string, duration: number): Promise<Task | null> {
+  try {
+    const tasks = await getTasks()
+    const task = tasks.find(t => t.id === taskId)
+    
+    if (!task) {
+      console.warn('[Reward] Task does not exist:', taskId)
+      return null
+    }
+    
+    task.currentDuration = duration
+    task.lastUpdateTime = Date.now()
+    
+    await saveTasks(tasks)
+    return task
+  } catch (error) {
+    console.error('[Reward] Failed to update task progress:', error)
+    return null
+  }
+}
+
+/**
+ * Claim milestone reward
+ */
+export async function claimMilestone(taskId: string, milestoneIndex: number): Promise<{ success: boolean; reward?: number; balance?: GPTBalance }> {
+  try {
+    const tasks = await getTasks()
+    const task = tasks.find(t => t.id === taskId)
+    
+    if (!task) {
+      return { success: false }
+    }
+    
+    const milestone = task.milestones[milestoneIndex]
+    if (!milestone || milestone.claimed) {
+      return { success: false }
+    }
+    
+    // verify duration requirement
+    if (task.currentDuration < milestone.duration) {
+      return { success: false }
+    }
+    
+    // mark as claimed
+    milestone.claimed = true
+    await saveTasks(tasks)
+    
+    // update GPT balance
+    const balance = await updateGPTBalance(milestone.reward)
+    
+    // add reward record
+    await addRewardRecord({
+      taskId: task.id,
+      platform: task.platform,
+      milestone: milestoneIndex,
+      reward: milestone.reward
+    })
+    
+    console.log('[Reward] Milestone reward claimed:', { taskId, milestoneIndex, reward: milestone.reward })
+    
+    return {
+      success: true,
+      reward: milestone.reward,
+      balance
+    }
+  } catch (error) {
+    console.error('[Reward] Failed to claim milestone reward:', error)
+    return { success: false }
+  }
+}
+
+/**
+ * Reset task (for a new visit session)
+ */
+export async function resetTask(taskId: string): Promise<void> {
+  try {
+    const tasks = await getTasks()
+    const task = tasks.find(t => t.id === taskId)
+    
+    if (!task) return
+    
+    task.currentDuration = 0
+    task.isActive = false
+    task.startTime = undefined
+    task.lastUpdateTime = undefined
+    
+    // reset milestones
+    task.milestones.forEach(m => {
+      m.claimed = false
+    })
+    
+    await saveTasks(tasks)
+    console.log('[Reward] Task reset:', taskId)
+  } catch (error) {
+    console.error('[Reward] Failed to reset task:', error)
+  }
+}
