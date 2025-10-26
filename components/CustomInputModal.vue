@@ -39,14 +39,14 @@ const handleBackdropClick = (e: MouseEvent) => {
 
 const isSubmitting = ref(false)
 
-// 重置表单
+// Reset form
 const resetForm = () => {
   prompt.value = ''
   isSubmitting.value = false
   console.log('[CustomInput] Form reset')
 }
 
-// 暴露重置方法给父组件
+// Expose reset method to parent component
 defineExpose({
   resetForm
 })
@@ -68,7 +68,7 @@ const handleSubmit = () => {
     prompt: prompt.value.trim()
   })
   
-  // 延迟重置提交状态，防止关闭动画期间重复触发
+  // Delay reset submission status to prevent duplicate triggers during close animation
   setTimeout(() => {
     isSubmitting.value = false
   }, 500)
@@ -76,7 +76,7 @@ const handleSubmit = () => {
   handleClose()
 }
 
-// 图片功能已移除
+// Image functionality has been removed
 </script>
 
 <template>

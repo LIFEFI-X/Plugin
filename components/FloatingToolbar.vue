@@ -18,7 +18,7 @@ const handleAction = (type: 'simplify' | 'expand' | 'translate' | 'addContext' |
   emit('action', type)
 }
 
-// 国际化文本
+// Internationalization text
 const i18n = computed(() => {
   const locale = props.locale || 'zh-CN'
   return {

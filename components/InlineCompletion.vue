@@ -23,7 +23,7 @@ const emit = defineEmits<{
     }"
   >
     <span class="suggestion-text">{{ suggestion }}</span>
-    <span class="suggestion-hint">Tab 接受</span>
+    <span class="suggestion-hint">Tab to accept</span>
   </div>
 </template>
 

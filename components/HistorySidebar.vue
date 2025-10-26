@@ -25,17 +25,17 @@ const formatTime = (timestamp: number) => {
   const now = new Date()
   const diff = now.getTime() - date.getTime()
   
-  if (diff < 60000) return '刚刚'
-  if (diff < 3600000) return `${Math.floor(diff / 60000)}分钟前`
-  if (diff < 86400000) return `${Math.floor(diff / 3600000)}小时前`
-  return date.toLocaleDateString('zh-CN')
+  if (diff < 60000) return 'Just now'
+  if (diff < 3600000) return `${Math.floor(diff / 60000)} minutes ago`
+  if (diff < 86400000) return `${Math.floor(diff / 3600000)} hours ago`
+  return date.toLocaleDateString('en-US')
 }
 
 const groupedRecords = computed(() => {
   const groups: { [key: string]: HistoryRecord[] } = {}
   
   props.records.forEach(record => {
-    const date = new Date(record.timestamp).toLocaleDateString('zh-CN')
+    const date = new Date(record.timestamp).toLocaleDateString('en-US')
     if (!groups[date]) {
       groups[date] = []
     }
@@ -49,10 +49,10 @@ const groupedRecords = computed(() => {
 <template>
   <div v-if="visible" class="history-sidebar">
     <div class="sidebar-header">
-      <h3>修改历史</h3>
+      <h3>Modification History</h3>
       <div class="header-actions">
         <button v-if="records.length > 0" @click="emit('clear')" class="clear-btn">
-          清空
+          Clear
         </button>
         <button @click="emit('close')" class="close-btn">✕</button>
       </div>
@@ -60,7 +60,7 @@ const groupedRecords = computed(() => {
     
     <div class="sidebar-content">
       <div v-if="records.length === 0" class="empty-state">
-        <p>暂无修改记录</p>
+        <p>No modification records</p>
       </div>
       
       <div v-else class="records-list">
@@ -79,19 +79,19 @@ const groupedRecords = computed(() => {
             
             <div class="record-content">
               <div class="text-block">
-                <div class="text-label">原文：</div>
+                <div class="text-label">Original text:</div>
                 <div class="text-value original">{{ record.originalText }}</div>
               </div>
               
               <div class="text-block">
-                <div class="text-label">改后：</div>
+                <div class="text-label">Modified text:</div>
                 <div class="text-value new">{{ record.newText }}</div>
               </div>
             </div>
             
             <div class="record-footer">
               <button @click="emit('undo', record.id)" class="undo-btn">
-                撤销
+                Undo
               </button>
             </div>
           </div>

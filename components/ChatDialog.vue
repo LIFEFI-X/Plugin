@@ -1,7 +1,7 @@
 <template>
   <div v-if="visible" class="chat-dialog-overlay" @click.self="handleClose">
     <div class="chat-dialog">
-      <!-- 头部 -->
+      <!-- Header --> 
       <div class="chat-header">
         <div class="chat-title">
           <img :src="petAvatar" class="pet-avatar" alt="LifeFi" />
@@ -10,7 +10,7 @@
         <button class="close-btn" @click="handleClose">×</button>
       </div>
 
-      <!-- 上下文信息 -->
+      <!-- Context Information -->
       <div v-if="contextInfo.hasContext" class="context-info">
         <div class="context-section" v-if="contextInfo.knowledgeBases.length > 0">
           <div class="section-header" @click="toggleSection('kb')">
@@ -38,7 +38,7 @@
         </div>
       </div>
 
-      <!-- 聊天消息区域 -->
+      <!-- Chat Messages Area -->
       <div class="chat-messages" ref="messagesContainer">
         <div v-for="(msg, index) in messages" :key="index" :class="['message', msg.role]">
           <div class="message-avatar" v-if="msg.role === 'assistant'">
@@ -53,7 +53,7 @@
           </div>
         </div>
 
-        <!-- 加载状态 -->
+        <!-- Loading Status -->
         <div v-if="isLoading" class="message assistant">
           <div class="message-avatar">
             <img :src="petAvatar" alt="LifeFi" />
@@ -66,7 +66,7 @@
         </div>
       </div>
 
-      <!-- 输入区域 -->
+      <!-- Input Area -->
       <div class="chat-input-area">
         <textarea
           v-model="userInput"
@@ -102,13 +102,13 @@ const emit = defineEmits<{
   close: []
 }>()
 
-// 状态
+// State
 const messages = ref<Array<{ role: 'user' | 'assistant', content: string, timestamp: number }>>([])
 const userInput = ref('')
 const isLoading = ref(false)
 const messagesContainer = ref<HTMLElement | null>(null)
 
-// 上下文信息
+// Context information
 const contextInfo = ref<{
   hasContext: boolean
   knowledgeBases: Array<{ id: string, title: string, content: string }>
@@ -119,29 +119,29 @@ const contextInfo = ref<{
   crossTabContexts: []
 })
 
-// 折叠状态
+// Expanded sections state
 const expandedSections = ref({
   kb: false,
   ctx: false
 })
 
-// 桌宠头像
+// Pet avatar
 const petAvatar = computed(() => {
   return browser.runtime.getURL(`asoul/${props.currentActor}/thinking.png`)
 })
 
-// 切换折叠
+// Toggle section
 function toggleSection(section: 'kb' | 'ctx') {
   expandedSections.value[section] = !expandedSections.value[section]
 }
 
-// 格式化时间
+// Format time
 function formatTime(timestamp: number): string {
   const date = new Date(timestamp)
   return date.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })
 }
 
-// 滚动到底部
+// Scroll to bottom
 async function scrollToBottom() {
   await nextTick()
   if (messagesContainer.value) {
@@ -149,12 +149,12 @@ async function scrollToBottom() {
   }
 }
 
-// 发送消息
+// Send message 
 async function handleSend() {
   const input = userInput.value.trim()
   if (!input || isLoading.value) return
 
-  // 添加用户消息
+  // Add user message
   messages.value.push({
     role: 'user',
     content: input,
@@ -163,7 +163,7 @@ async function handleSend() {
   userInput.value = ''
   scrollToBottom()
 
-  // 调用 AI
+  // Call AI
   isLoading.value = true
   try {
     const response = await browser.runtime.sendMessage({
@@ -200,12 +200,12 @@ async function handleSend() {
   }
 }
 
-// 关闭对话框
+// Close dialog
 function handleClose() {
   emit('close')
 }
 
-// 加载上下文信息
+// Load context information 
 async function loadContext() {
   try {
     const response = await browser.runtime.sendMessage({
@@ -225,13 +225,13 @@ async function loadContext() {
   }
 }
 
-// 初始化
+// Initialize
 watch(() => props.visible, async (newVal) => {
   if (newVal) {
-    // 打开对话框时加载上下文
+    // Load context when opening dialog
     await loadContext()
     
-    // 如果有初始消息，自动发送
+    // If there is an initial message, send it automatically
     if (props.initialMessage && messages.value.length === 0) {
       userInput.value = props.initialMessage
       setTimeout(() => {
@@ -322,7 +322,7 @@ onMounted(() => {
   background: rgba(255, 255, 255, 0.3);
 }
 
-/* 上下文信息区域 */
+/* Context Information Area */
 .context-info {
   border-bottom: 1px solid #eee;
   max-height: 200px;
@@ -384,7 +384,7 @@ onMounted(() => {
   line-height: 1.4;
 }
 
-/* 消息区域 */
+/* Messages Area */
 .chat-messages {
   flex: 1;
   min-height: 300px;
@@ -500,7 +500,7 @@ onMounted(() => {
   }
 }
 
-/* 输入区域 */
+/* Input Area */
 .chat-input-area {
   display: flex;
   gap: 12px;
@@ -554,7 +554,7 @@ onMounted(() => {
   transform: none;
 }
 
-/* 滚动条样式 */
+/* Scrollbar Styles */
 .chat-messages::-webkit-scrollbar,
 .context-info::-webkit-scrollbar {
   width: 6px;
