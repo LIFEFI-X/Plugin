@@ -49,6 +49,9 @@ export function loadPoppinsFonts() {
   const globalFontRule = `
     body, html, input, textarea, select, button {
       font-family: 'Poppins', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      text-rendering: optimizeLegibility;
     }
   `
 

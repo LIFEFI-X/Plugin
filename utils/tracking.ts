@@ -159,13 +159,14 @@ export async function checkAndClaimMilestones(taskId: string, duration: number):
           console.log('[Tracking] Auto-claimed milestone reward:', {
             taskId,
             milestoneIndex: i,
-            reward: milestone.reward,
+            baseReward: milestone.reward,
+            actualReward: result.reward,
             balance: result.balance?.total
           })
           
           return {
             claimed: true,
-            reward: milestone.reward,
+            reward: result.reward,  // ✅ Use actual reward after multiplier
             milestoneIndex: i
           }
         }

@@ -255,7 +255,6 @@ function initWriteBox() {
       return
     }
     
-
     console.log('[Selection] ✅ Non-pet element, continuing text selection processing')
     
     setTimeout(() => {
@@ -1311,16 +1310,17 @@ function initWriteBox() {
         }
         
         if (result.rewardClaimed) {
-          console.log('[Tracking] Reward claimed!', result.rewardClaimed)
+          console.log('[Tracking] Reward claimed (with multiplier)!', result.rewardClaimed)
           
           const event = new CustomEvent('task-reward-claimed', {
             detail: {
-              reward: result.rewardClaimed.reward,
+              reward: result.rewardClaimed.reward,  // Already multiplied
               balance: result.task.currentDuration
             }
           })
           window.dispatchEvent(event)
           
+          // Note: result.rewardClaimed.reward is already multiplied by pet rate
           window.postMessage({
             type: 'LIFEFI_PET_MESSAGE',
             message: `Congrats! You earned ${result.rewardClaimed.reward} CPoint! 🎉`

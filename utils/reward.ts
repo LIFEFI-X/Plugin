@@ -50,7 +50,7 @@ export async function getGPTBalance(): Promise<GPTBalance> {
     if (result[STORAGE_KEYS.ASOUL_CONFIG]) {
       const config = JSON.parse(result[STORAGE_KEYS.ASOUL_CONFIG])
       return {
-        total: config.gptBalance || 0,
+        total: config.cpointBalance || 0,
         lastUpdate: Date.now()
       }
     }
@@ -76,7 +76,7 @@ export async function updateGPTBalance(amount: number, applyMultiplier: boolean 
     const result = await browser.storage.sync.get(STORAGE_KEYS.ASOUL_CONFIG)
     let config = result[STORAGE_KEYS.ASOUL_CONFIG]
       ? JSON.parse(result[STORAGE_KEYS.ASOUL_CONFIG])
-      : { gptBalance: 0 }
+      : { cpointBalance: 0 }
 
     // Apply pet multiplier to reward
     let finalAmount = amount
@@ -87,18 +87,18 @@ export async function updateGPTBalance(amount: number, applyMultiplier: boolean 
     }
 
     // Update balance
-    config.gptBalance = (config.gptBalance || 0) + finalAmount
-    config.lastGptUpdate = Date.now()
+    config.cpointBalance = (config.cpointBalance || 0) + finalAmount
+    config.lastCpointUpdate = Date.now()
 
     // Save back to storage
     await browser.storage.sync.set({
       [STORAGE_KEYS.ASOUL_CONFIG]: JSON.stringify(config)
     })
 
-    console.log('[Reward] CPoint balance updated:', config.gptBalance, `(+${finalAmount})`)
+    console.log('[Reward] CPoint balance updated:', config.cpointBalance, `(+${finalAmount})`)
 
     return {
-      total: config.gptBalance,
+      total: config.cpointBalance,
       lastUpdate: Date.now()
     }
   } catch (error) {
@@ -278,12 +278,16 @@ export async function claimMilestone(taskId: string, milestoneIndex: number): Pr
 
     console.log('[Reward] Claiming milestone:', { baseReward: milestone.reward })
 
+    // Get current multiplier
+    const multiplier = await getCurrentPetMultiplier()
+    const actualReward = Math.floor(milestone.reward * multiplier)
+
     // mark as claimed
     milestone.claimed = true
     await saveTasks(tasks)
 
     // update CPoint balance with multiplier
-    console.log('[Reward] Calling updateGPTBalance with amount:', milestone.reward)
+    console.log('[Reward] Calling updateGPTBalance with amount:', milestone.reward, 'multiplier:', multiplier)
     const balance = await updateGPTBalance(milestone.reward, true)
     console.log('[Reward] Balance after update:', balance)
 
@@ -299,12 +303,14 @@ export async function claimMilestone(taskId: string, milestoneIndex: number): Pr
       taskId,
       milestoneIndex,
       baseReward: milestone.reward,
+      actualReward,
+      multiplier,
       newBalance: balance.total
     })
 
     return {
       success: true,
-      reward: milestone.reward,
+      reward: actualReward,  // Return actual reward after multiplier
       balance
     }
   } catch (error) {

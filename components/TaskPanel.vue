@@ -103,6 +103,12 @@ import type { Task } from '@/types/task'
 import { getTasks, getGPTBalance } from '@/utils/reward'
 import { formatTime, calculateCountdown } from '@/utils/tracking'
 
+// Define emits
+const emit = defineEmits<{
+  back: []
+  'reward-claimed': [reward: number, newBalance: number]
+}>()
+
 // State
 const tasks = ref<Task[]>([])
 const balance = ref<number>(0)
@@ -155,6 +161,9 @@ function handleRewardClaimed(event: CustomEvent) {
   console.log('[TaskPanel] Reward claimed:', { reward, newBalance })
   
   balance.value = newBalance
+  
+  // Notify parent component to update CPoint balance
+  emit('reward-claimed', reward, newBalance)
   
   // Reload tasks to update milestone status
   loadData()

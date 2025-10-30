@@ -32,7 +32,7 @@
       <!-- Task View -->
       <div v-else-if="showTaskInPanel" class="task-view">
         <div class="task-content">
-          <TaskPanel @back="closeTaskPanel" />
+          <TaskPanel @back="closeTaskPanel" @reward-claimed="handleTaskReward" />
         </div>
       </div>
             <!-- Settings View -->
@@ -1113,6 +1113,34 @@ function awardTaskCpoint() {
   awardCpoint(CPOINT_ACTIVITIES.TASK_COMPLETE, 'Task Completed')
 }
 
+// Handle task reward from TaskPanel
+async function handleTaskReward(reward: number, newBalance: number) {
+  console.log('[ASoulPet] Task reward received (already with multiplier):', { reward, newBalance, currentBalance: cpointBalance.value })
+  
+  // The balance has already been updated in storage by reward.ts
+  // We just need to reload from storage to sync
+  try {
+    const result = await browser.storage.sync.get('ASOUL_CONFIG')
+    if (result.ASOUL_CONFIG) {
+      const config = JSON.parse(result.ASOUL_CONFIG)
+      if (config.cpointBalance !== undefined) {
+        cpointBalance.value = config.cpointBalance
+        console.log('[ASoulPet] CPoint balance synced from storage:', cpointBalance.value)
+      }
+    }
+  } catch (error) {
+    console.error('[ASoulPet] Failed to sync CPoint balance:', error)
+  }
+  
+  // Show success message with actual reward (reward is already multiplied)
+  showRandomMessage(`+${reward} CPoint earned! (${currentCpointRate.value}x rate)`)
+  
+  console.log('[ASoulPet] CPoint balance updated:', { 
+    new: cpointBalance.value, 
+    reward,
+    rate: currentCpointRate.value
+  })
+}
 // Award CPoint for playing a game
 function awardGameCpoint() {
   awardCpoint(CPOINT_ACTIVITIES.GAME_PLAY, 'Game Played')
@@ -1925,7 +1953,7 @@ onUnmounted(() => {
   align-items: center;
   margin-bottom: 16px;
   padding-bottom: 12px;
-  border-bottom: 2px solid #f0f0f0;
+  border-bottom: 0.5px solid rgba(255, 255, 255, 0.15);
 }
 
 .settings-header h3 {
@@ -2180,14 +2208,14 @@ onUnmounted(() => {
 
 .wallet-label {
   color: rgba(255, 255, 255, 0.6);
-  font-weight: 500;
+  font-weight: 400;
 }
 
 .wallet-address {
   flex: 1;
   color: rgba(255, 255, 255, 0.9);
   font-family: monospace;
-  font-weight: 600;
+  font-weight: 500;
   font-size: 12px;
 }
 
@@ -2266,7 +2294,7 @@ onUnmounted(() => {
 
 .cpoint-amount {
   font-size: 32px;
-  font-weight: 600;
+  font-weight: 500;
   color: white;
   letter-spacing: -1px;
 }
@@ -2282,18 +2310,21 @@ onUnmounted(() => {
   font-size: 13px;
   color: rgba(255, 255, 255, 0.6);
   margin: 0;
+  font-weight: 400;
 }
 
 .cpoint-rate-info strong {
   color: white;
   font-size: 15px;
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .rate-pet {
   color: rgba(255, 255, 255, 0.5);
   font-size: 12px;
+  font-weight: 400;
 }
+
 
 /* More Companion Button */
 .more-companion-section {
@@ -2486,13 +2517,6 @@ onUnmounted(() => {
   font-size: 18px;
 }
 
-.nft-section-header {
-  border-left: 3px solid rgba(255, 255, 255, 0.3);
-}
-
-.cpoint-section-header {
-  border-left: 3px solid rgba(255, 255, 255, 0.2);
-}
 
 .no-pets-message {
   padding: 32px 16px;
