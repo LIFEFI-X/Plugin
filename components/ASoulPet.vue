@@ -1530,7 +1530,7 @@ function showRecommendationMessage(recommendation: any) {
   recommendationData.value = recommendation
   
   // Display recommendation using message bubble
-  const message = `✨ Recommended:\n${recommendation.title}\n${recommendation.description}\n\n💡 Click message to visit → Earn 200 GPT!`
+    const message = `✨ Recommended:\n${recommendation.title}\n${recommendation.description}\n\n💡 Click message to visit → Earn 200 CPoint!`
   
   currentMessage.value = message
   messageVisible.value = true
