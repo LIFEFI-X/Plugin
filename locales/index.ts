@@ -169,7 +169,7 @@ export interface Locale {
       bella: string
       carol: string
       eileen: string
-      luna: string
+      faye: string
     }
     ai: {
       translating: string
@@ -210,7 +210,7 @@ export interface Locale {
       bella: string[]
       carol: string[]
       eileen: string[]
-      luna: string[]
+      faye: string[]
     }
   }
 }

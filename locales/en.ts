@@ -173,7 +173,7 @@ export const en: Locale = {
       bella: 'Bella',
       carol: 'Carol',
       eileen: 'Eileen',
-      luna: 'Luna'
+      faye: 'Faye'
     },
     ai: {
       translating: 'Let me translate...',
@@ -270,7 +270,7 @@ export const en: Locale = {
         'You know? I see all your progress~👀',
         'Take your time, I\'ll always guard your creation~💖'
       ],
-      luna: [
+      faye: [
         'Hi! I\'m LifeFi, your writing assistant~😘',
         'Inspiration is here! Remember to save~✨',
         'Take a break, balance is key~🥰',

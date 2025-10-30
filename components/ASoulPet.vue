@@ -89,7 +89,7 @@
             </p>
           </div>
 
-          <!-- Luna NFT Section -->
+          <!-- Faye NFT Section -->
           <div class="section-header nft-section-header">
             <h4>{{ t('pet.nft.nftPet') }}</h4>
           </div>
@@ -228,7 +228,7 @@ const TABLE = {
   bella: { bait: 'star', cursor: 'cursor-bella.png' },
   carol: { bait: 'knight', cursor: 'cursor-carol.png' },
   eileen: { bait: 'icecream', cursor: 'cursor-eileen.png' },
-  luna: { bait: 'moon', cursor: 'cursor-luna.png' }
+  faye: { bait: 'moon', cursor: 'cursor-faye.png' }
 }
 
 // CPoint Tier System Configuration
@@ -268,7 +268,7 @@ const CPOINT_TIER_CONFIG = {
     description: 'Tier 2 - 50% faster CPoint earning'
   },
   // Tier 3 - NFT exclusive (highest rate)
-  luna: {
+  faye: {
     unlockCost: 0, // Unlocked via wallet binding, not CPoint
     cpointRate: 2.0,
     tier: 3,
@@ -286,7 +286,7 @@ const CPOINT_ACTIVITIES = {
 } as const
 
 // 状态管理
-const currentActor = ref<'diana' | 'ava' | 'bella' | 'carol' | 'eileen' | 'luna'>('carol')
+const currentActor = ref<'diana' | 'ava' | 'bella' | 'carol' | 'eileen' | 'faye'>('carol')
 const currentStatus = ref<string>('thinking')
 const position = ref({ x: 20, y: window.innerHeight - 130 })// Default: bottom-left corner
 const faceDirection = ref<'left' | 'right'>('right')
@@ -329,9 +329,9 @@ let isJumping = false
 const showSettings = ref(false)
 const showGameInPanel = ref(false)
 const showTaskInPanel = ref(false)
-// Base characters available without wallet binding (excluding Luna)
+// Base characters available without wallet binding (excluding Faye)
 const baseCharacters = ['diana', 'ava', 'bella', 'carol', 'eileen'] as const
-const characters = ['diana', 'ava', 'bella', 'carol', 'eileen','luna'] as const
+const characters = ['diana', 'ava', 'bella', 'carol', 'eileen','faye'] as const
 
 // Wallet binding state
 const walletAddress = ref<string>('')
@@ -347,8 +347,8 @@ const lastLoginDate = ref<string>('') // Track daily login bonus
 // Computed property for available characters based on wallet binding and CPoint unlocks
 const availableCharacters = computed(() => {
   if (isWalletBound.value) {
-    // After wallet binding: show Luna (NFT) only
-    return ['luna'] as const
+    // After wallet binding: show Faye (NFT) only
+    return ['faye'] as const
   } else {
     // Before wallet binding: don't show any pets (force wallet binding first)
     return [] as const
@@ -1342,15 +1342,15 @@ async function bindWallet() {
 
   await saveSettings()
 
-  showRandomMessage('Wallet bound! Luna is now equipable!')
+  showRandomMessage('Wallet bound! Faye is now equipable!')
 }
 
 function unbindWallet() {
   walletAddress.value = ''
   isWalletBound.value = false
 
-  // If currently using Luna, switch back to Carol (default)
-  if (currentActor.value === 'luna') {
+  // If currently using Faye, switch back to Carol (default)
+  if (currentActor.value === 'faye') {
     currentActor.value = 'carol'
     updateCursor('carol')
   }

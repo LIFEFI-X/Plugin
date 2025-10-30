@@ -25,7 +25,7 @@ async function getCurrentPetMultiplier(): Promise<number> {
         'bella': 1.2,
         'ava': 1.5,
         'eileen': 1.5,
-        'luna': 2.0
+        'faye': 2.0
       }
 
       const currentActor = config.currentActor || 'carol'

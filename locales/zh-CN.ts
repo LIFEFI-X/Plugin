@@ -173,7 +173,7 @@ export const zhCN: Locale = {
       bella: 'bella',
       carol: 'carol',
       eileen: 'eileen',
-      luna: 'luna'
+      faye: 'faye'
     },
     ai: {
       translating: '让我翻译一下...',
@@ -270,7 +270,7 @@ export const zhCN: Locale = {
         '你知道吗？你的进步我都看得见~👀',
         '慢慢来，我会一直守护着你的创作~💖'
       ],
-      luna: [
+      faye: [
         '写作是一种表达，也是一种思考~💭',
         '灵感来了，就赶紧写下来吧~✨',
         '写作是一种享受，也是一种挑战~🎯',
