@@ -7,10 +7,10 @@ import { buildCompletionContext, buildCompletionMessages, buildTextProcessMessag
 export default defineBackground(() => {
   console.log('[Background] lifefi background script started', { id: browser.runtime.id })
 
-  // 初始化数据库和默认配置
+
   initializeOnInstall()
 
-  // 监听来自内容脚本的消息
+
   browser.runtime.onMessage.addListener((message: any, sender: any) => {
     console.log('[Background] Received message:', message.type)
     
@@ -20,29 +20,29 @@ export default defineBackground(() => {
         return handleAIRequest(request)
       }
       
-      // 智能补全请求（流式）
+     
       if (message.type === 'AI_COMPLETION') {
         handleCompletionStream(message.payload, sender.tab?.id)
         return true // 保持消息通道开放
       }
       
-      // 处理获取配置的请求
+ 
       if (message.type === 'GET_CONFIG') {
         console.log('[Background] Received configuration request')
         return handleGetConfig()
       }
       
-      // 保存跨页签上下文
+   
       if (message.type === 'SAVE_CROSS_TAB_CONTEXT') {
         return handleSaveCrossTabContext(message.payload)
       }
       
-      // 获取知识库和上下文（用于AI调用）
+
       if (message.type === 'LIFEFI_GET_CONTEXT') {
         return handleGetContext()
       }
       
-      // 桌宠AI调用
+      
       if (message.type === 'LIFEFI_PET_AI_CALL') {
         return handlePetAICall(message.payload)
       }
@@ -62,7 +62,7 @@ export default defineBackground(() => {
   console.log('[Background] Message listener registered')
 })
 
-// 初始化函数：在插件安装或启动时执行
+
 async function initializeOnInstall() {
   try {
     console.log('[Background] Starting initialization...')
@@ -88,7 +88,7 @@ async function initializeOnInstall() {
       }]
     }
     
-    // 保存默认配置
+
     await saveConfig('aiProviders', [defaultProvider])
     await saveConfig('selectedModel', {
       providerId: 'deepseek',
@@ -97,7 +97,7 @@ async function initializeOnInstall() {
     
     console.log('[Background] ✅ Default configuration initialized')
     
-    // 2. 确保数据库表结构存在（通过导入 db 模块自动初始化）
+
     await import('@/utils/db')
     
     console.log('[Background] ✅ Database initialized')
@@ -108,7 +108,7 @@ async function initializeOnInstall() {
   }
 }
 
-// 保存跨页签上下文
+
 async function handleSaveCrossTabContext(context: any) {
   try {
     const { saveCrossTabContext } = await import('@/utils/db')
@@ -121,7 +121,7 @@ async function handleSaveCrossTabContext(context: any) {
   }
 }
 
-// 获取知识库和上下文（用于桌宠AI功能）
+
 async function handleGetContext() {
   try {
     console.log('[Background] Fetching knowledge bases and contexts...')
@@ -147,13 +147,13 @@ async function handleGetContext() {
   }
 }
 
-// 处理桌宠AI调用
+
 async function handlePetAICall(payload: any): Promise<any> {
   try {
     const { action, prompt } = payload
     console.log('[Background] 🤖 Handling pet AI request:', action, 'prompt length:', prompt.length)
     
-    // 获取配置和上下文
+
     const configData = await handleGetConfig()
     if (!configData.success) {
       console.error('[Background] ❌ Failed to retrieve configuration:', configData.error)
@@ -176,20 +176,19 @@ async function handlePetAICall(payload: any): Promise<any> {
     }
     
     console.log('[Background] ✅ Using model:', model.id, 'knowledge bases:', knowledgeBases.length, 'contexts:', crossTabContexts.length)
-    
-    // 构建上下文信息
+
     let contextInfo = ''
     const contextParts = []
     
     if (knowledgeBases && knowledgeBases.length > 0) {
-      contextParts.push('\n【知识库】')
+      contextParts.push('\n【knowledgeBases】')
       knowledgeBases.forEach((kb: any, index: number) => {
         contextParts.push(`${index + 1}. ${kb.title}:\n${kb.content}`)
       })
     }
     
     if (crossTabContexts && crossTabContexts.length > 0) {
-      contextParts.push('\n【上下文】')
+      contextParts.push('\n【crossTabContexts】')
       crossTabContexts.forEach((ctx: any, index: number) => {
         contextParts.push(`${index + 1}. ${ctx.text}`)
       })
@@ -199,7 +198,7 @@ async function handlePetAICall(payload: any): Promise<any> {
       contextInfo = contextParts.join('\n')
     }
     
-    // 构建消息
+
     const messages = [
       {
         role: 'system',
@@ -211,7 +210,7 @@ async function handlePetAICall(payload: any): Promise<any> {
       }
     ]
     
-    // 调用 AI API
+
     const response = await fetch(provider.apiUrl, {
       method: 'POST',
       headers: {
@@ -243,7 +242,7 @@ async function handlePetAICall(payload: any): Promise<any> {
     }
     
   } catch (error) {
-    console.error('[Background] ❌ Pet AI request failed:', error)
+    console.error('[Background] ❌ LifeFi Companion AI request failed:', error)
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error'
@@ -251,7 +250,7 @@ async function handlePetAICall(payload: any): Promise<any> {
   }
 }
 
-// 处理获取配置请求（包括知识库和跨页签上下文）
+
 async function handleGetConfig() {
   try {
     console.log('[Background] Reading configuration from IndexedDB...')
@@ -297,12 +296,12 @@ async function handleGetConfig() {
   }
 }
 
-// 处理文本处理请求（润色/纠错/简化/扩写）
+
 async function handleAIRequest(request: AIRequest): Promise<AIResponse> {
   try {
     console.log('[Background] Processing text request:', request.type)
     
-    // 获取配置和上下文
+
     const configData = await handleGetConfig()
     if (!configData.success) {
       return {
@@ -322,10 +321,9 @@ async function handleAIRequest(request: AIRequest): Promise<AIResponse> {
       }
     }
     
-    // 类型映射
+
     const actionType = request.type as 'polish' | 'correct' | 'simplify' | 'expand' | 'translate' | 'custom'
-    
-    // 构建 messages（直接传递知识库和跨页签上下文）
+
     const messages = buildTextProcessMessages(
       actionType,
       request.text,
@@ -342,7 +340,7 @@ async function handleAIRequest(request: AIRequest): Promise<AIResponse> {
     }
     console.log('[Background] Enabled knowledge bases:', knowledgeBases.filter((kb: any) => kb.enabled).map((kb: any) => kb.title))
     
-    // 调用 Chat API
+
     const bodyParams = formatChatRequest(
       provider.apiType,
       messages,
@@ -350,7 +348,7 @@ async function handleAIRequest(request: AIRequest): Promise<AIResponse> {
       {
         maxTokens: model.config.maxTokens || 500,
         temperature: model.config.temperature || 1.5,
-        stream: false // 文本处理不使用流式
+        stream: false 
       }
     )
     
@@ -391,14 +389,14 @@ async function handleAIRequest(request: AIRequest): Promise<AIResponse> {
   }
 }
 
-// 处理智能补全流式请求
+
 async function handleCompletionStream(payload: any, tabId?: number) {
   try {
     const { context } = payload
     
     console.log('[Background] Starting autocomplete, context length:', context.length)
     
-    // 获取配置和上下文
+  
     const configData = await handleGetConfig()
     if (!configData.success) {
       sendCompletionError(tabId || 0, configData.error || 'Configuration error')
@@ -414,7 +412,7 @@ async function handleCompletionStream(payload: any, tabId?: number) {
       return
     }
     
-    // 构建 messages（直接传递知识库和跨页签上下文）
+
     const messages = buildCompletionMessages(
       context,
       knowledgeBases,
@@ -423,7 +421,7 @@ async function handleCompletionStream(payload: any, tabId?: number) {
     
     console.log('[Background] knowledge bases:', knowledgeBases.length, ' entries(enabled:', knowledgeBases.filter((kb: any) => kb.enabled).length, '), cross-tab contexts:', crossTabContexts.length, ' entries(enabled:', crossTabContexts.filter((ctx: any) => ctx.enabled).length, '）')
     
-    // 格式化请求
+
     const bodyParams = formatChatRequest(
       provider.apiType,
       messages,
@@ -431,7 +429,7 @@ async function handleCompletionStream(payload: any, tabId?: number) {
       {
         maxTokens: model.config.maxTokens || 150,
         temperature: model.config.temperature || 1.5,
-        stream: true // 流式输出
+        stream: true 
       }
     )
     
@@ -439,7 +437,7 @@ async function handleCompletionStream(payload: any, tabId?: number) {
     
     console.log('[Background] Sending streaming request:', provider.apiUrl)
     
-    // 发送流式请求
+
     const response = await fetch(provider.apiUrl, {
       method: 'POST',
       headers,
@@ -468,7 +466,6 @@ async function handleCompletionStream(payload: any, tabId?: number) {
 
       buffer += decoder.decode(value, { stream: true })
 
-      // 处理每一行数据
       let lastNewlineIndex
       while ((lastNewlineIndex = buffer.indexOf('\n')) !== -1) {
         const line = buffer.substring(0, lastNewlineIndex).trim()
@@ -479,7 +476,7 @@ async function handleCompletionStream(payload: any, tabId?: number) {
           if (jsonStr === '[DONE]') {
             console.log('[Background] Received [DONE] signal')
             sendCompletionComplete(tabId)
-            return // 提前结束
+            return 
           }
           
           if (!jsonStr) continue
@@ -496,14 +493,14 @@ async function handleCompletionStream(payload: any, tabId?: number) {
         }
       }
     }
-    sendCompletionComplete(tabId) // 确保在流结束时发送完成信号
+    sendCompletionComplete(tabId)
   } catch (error) {
     console.error('[Background] Failed to process streaming completion:', error)
     sendCompletionError(tabId, error instanceof Error ? error.message : 'Unknown error')
   }
 }
 
-// 发送补全片段到 content script
+
 function sendCompletionChunk(tabId: number | undefined, chunk: string) {
   if (!tabId) return
   browser.tabs.sendMessage(tabId, {
@@ -512,7 +509,7 @@ function sendCompletionChunk(tabId: number | undefined, chunk: string) {
   }).catch((err: any) => console.error('[Background] Failed to send message:', err))
 }
 
-// 发送补全完成信号
+
 function sendCompletionComplete(tabId: number | undefined) {
   if (!tabId) return
   browser.tabs.sendMessage(tabId, {
@@ -520,7 +517,7 @@ function sendCompletionComplete(tabId: number | undefined) {
   }).catch((err: any) => console.error('[Background] Failed to send message:', err))
 }
 
-// 发送补全错误
+
 function sendCompletionError(tabId: number | undefined, error: string) {
   if (!tabId) return
   browser.tabs.sendMessage(tabId, {

@@ -537,7 +537,7 @@ onMounted(async () => {
   display: flex;
   flex-direction: column;
   background: #f8f9fa;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
   overflow: hidden; /* Ensure the outer container stays scroll-free */
 }
 
@@ -1025,7 +1025,7 @@ kbd {
   border: 1px solid #d1d5db;
   border-radius: 6px;
   font-size: 14px;
-  font-family: inherit;
+  font-family: 'Poppins';
   line-height: 1.6;
   resize: vertical;
   transition: all 0.2s;

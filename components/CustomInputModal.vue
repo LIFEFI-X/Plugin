@@ -39,14 +39,12 @@ const handleBackdropClick = (e: MouseEvent) => {
 
 const isSubmitting = ref(false)
 
-// Reset form
 const resetForm = () => {
   prompt.value = ''
   isSubmitting.value = false
   console.log('[CustomInput] Form reset')
 }
 
-// Expose reset method to parent component
 defineExpose({
   resetForm
 })
@@ -68,7 +66,6 @@ const handleSubmit = () => {
     prompt: prompt.value.trim()
   })
   
-  // Delay reset submission status to prevent duplicate triggers during close animation
   setTimeout(() => {
     isSubmitting.value = false
   }, 500)
@@ -76,7 +73,7 @@ const handleSubmit = () => {
   handleClose()
 }
 
-// Image functionality has been removed
+
 </script>
 
 <template>
@@ -138,7 +135,7 @@ const handleSubmit = () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
 }
 
 .lifefi-custom-input-modal {
@@ -248,7 +245,7 @@ const handleSubmit = () => {
   border: 2px solid #e5e7eb;
   border-radius: 8px;
   font-size: 14px;
-  font-family: inherit;
+  font-family: 'Poppins';
   line-height: 1.5;
   color: #1f2937;
   resize: vertical;

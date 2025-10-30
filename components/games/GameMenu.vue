@@ -1,6 +1,6 @@
 <template>
   <div class="game-menu-container">
-    <!-- 如果选择了游戏，显示游戏界面 -->
+    <!-- If game selected, show game interface -->
     <component 
       v-if="selectedGame" 
       :is="currentGameComponent" 
@@ -8,31 +8,48 @@
       @viewStats="showStatsPanel = true"
     />
     
-    <!-- 游戏选择菜单 -->
+    <!-- Game selection menu -->
     <div v-else class="menu-content">
       <div class="menu-header">
-        <h2>🎮 Game Center</h2>
+        <h2>
+          <svg class="header-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="6" y="7" width="12" height="10" rx="2" stroke="currentColor" stroke-width="2"/>
+            <path d="M9 10H9.01M12 10H12.01M15 10H15.01M9 13H15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+          Game Center
+        </h2>
         <button @click="$emit('close')" class="btn-close">✕</button>
       </div>
 
-      <!-- 统计概览 -->
+      <!-- Stats overview -->
       <div v-if="stats" class="stats-overview">
         <div class="stat-card">
-          <div class="stat-icon">🎯</div>
+          <svg class="stat-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/>
+            <circle cx="12" cy="12" r="3" fill="currentColor"/>
+            <path d="M12 3V5M12 19V21M3 12H5M19 12H21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
           <div class="stat-info">
             <span class="stat-label">Total Games</span>
             <span class="stat-value">{{ stats.totalGames }}</span>
           </div>
         </div>
         <div class="stat-card">
-          <div class="stat-icon">⭐</div>
+          <svg class="stat-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 2L15 9L22 10L17 15L18 22L12 18L6 22L7 15L2 10L9 9L12 2Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+          </svg>
           <div class="stat-info">
             <span class="stat-label">Total Points</span>
             <span class="stat-value">{{ stats.totalPoints }}</span>
           </div>
         </div>
         <div class="stat-card">
-          <div class="stat-icon">🏆</div>
+          <svg class="stat-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M6 9H4V20H8V9H6Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+            <path d="M14 5H10V20H14V5Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+            <path d="M20 13H16V20H20V13Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+            <circle cx="12" cy="2" r="1" fill="currentColor"/>
+          </svg>
           <div class="stat-info">
             <span class="stat-label">High Score</span>
             <span class="stat-value">{{ stats.highScore }}</span>
@@ -40,7 +57,7 @@
         </div>
       </div>
 
-      <!-- 游戏列表 -->
+      <!-- Games list -->
       <div class="games-grid">
         <div 
           v-for="game in games" 
@@ -59,31 +76,46 @@
           <button class="btn-play">Start Game</button>
         </div>
 
-        <!-- 即将推出 -->
+        <!-- Coming soon -->
         <div class="game-card coming-soon">
-          <div class="game-icon">🎲</div>
           <h3 class="game-title">More Games</h3>
           <p class="game-desc">Coming Soon</p>
           <div class="coming-soon-badge">Coming Soon</div>
         </div>
       </div>
 
-      <!-- 底部操作 -->
+      <!-- Footer actions -->
       <div class="menu-footer">
         <button @click="showStatsPanel = true" class="btn-footer">
-          📊 View Stats
+          <svg class="footer-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="4" y="14" width="4" height="6" rx="1" stroke="currentColor" stroke-width="2"/>
+            <rect x="10" y="8" width="4" height="12" rx="1" stroke="currentColor" stroke-width="2"/>
+            <rect x="16" y="4" width="4" height="16" rx="1" stroke="currentColor" stroke-width="2"/>
+          </svg>
+          View Stats
         </button>
         <button @click="showRecords = true" class="btn-footer">
-          📜 Records
+          <svg class="footer-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="6" y="4" width="12" height="16" rx="2" stroke="currentColor" stroke-width="2"/>
+            <path d="M9 8H15M9 12H15M9 16H13" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+          Records
         </button>
       </div>
     </div>
 
-    <!-- 统计面板 -->
+    <!-- Statistics panel -->
     <div v-if="showStatsPanel" class="modal-overlay" @click.self="showStatsPanel = false">
       <div class="stats-panel">
         <div class="panel-header">
-          <h3>📊 Game Statistics</h3>
+          <h3>
+            <svg class="panel-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect x="4" y="14" width="4" height="6" rx="1" stroke="currentColor" stroke-width="2"/>
+              <rect x="10" y="8" width="4" height="12" rx="1" stroke="currentColor" stroke-width="2"/>
+              <rect x="16" y="4" width="4" height="16" rx="1" stroke="currentColor" stroke-width="2"/>
+            </svg>
+            Game Statistics
+          </h3>
           <button @click="showStatsPanel = false" class="btn-close">✕</button>
         </div>
         <div class="panel-body" v-if="stats">
@@ -146,11 +178,17 @@
       </div>
     </div>
 
-    <!-- 游戏记录 -->
+  
     <div v-if="showRecords" class="modal-overlay" @click.self="showRecords = false">
       <div class="records-panel">
         <div class="panel-header">
-          <h3>📜 Game Records</h3>
+          <h3>
+            <svg class="panel-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect x="6" y="4" width="12" height="16" rx="2" stroke="currentColor" stroke-width="2"/>
+              <path d="M9 8H15M9 12H15M9 16H13" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+            Game Records
+          </h3>
           <button @click="showRecords = false" class="btn-close">✕</button>
         </div>
         <div class="panel-body">
@@ -198,59 +236,59 @@ import {
   clearGameData
 } from '@/utils/game'
 
-// 定义事件
+// Define events
 const emit = defineEmits<{
   close: []
 }>()
 
-// 游戏列表
+// Games list
 const games = [
   {
     id: 'dont-tap-white',
     name: "Don't Tap White",
-    icon: '⬛',
+    icon: '',
     description: 'Tap black blocks and avoid white blocks!',
     component: markRaw(DontTapWhite)
   },
   {
     id: 'snake',
     name: 'Snake Game',
-    icon: '🐍',
+    icon: '',
     description: 'Control the snake with WASD keys!',
     component: markRaw(Snake)
   },
   {
     id: 'tetris',
     name: 'Tetris',
-    icon: '🟦',
+    icon: '',
     description: 'Classic block puzzle game with WASD controls!',
     component: markRaw(Tetris)
   }
 ]
 
-// 当前选择的游戏
+// Current selected game
 const selectedGame = ref<string | null>(null)
 
-// 统计数据
+// Statistics data
 const stats = ref<GameStats | null>(null)
 
-// 游戏记录
+// Game records
 const records = ref<GameRecord[]>([])
 
-// 显示统计面板
+// Show statistics panel
 const showStatsPanel = ref(false)
 
-// 显示记录
+// Show records
 const showRecords = ref(false)
 
-// 当前游戏组件
+// Current game component
 const currentGameComponent = computed(() => {
   const game = games.find(g => g.id === selectedGame.value)
   return game?.component
 })
 
 /**
- * 选择游戏
+ * Select game
  */
 function selectGame(gameId: string) {
   selectedGame.value = gameId
@@ -258,16 +296,16 @@ function selectGame(gameId: string) {
 }
 
 /**
- * 关闭游戏
+ * Close game
  */
 async function closeGame() {
   selectedGame.value = null
-  // 重新加载统计
+  // Reload statistics
   await loadData()
 }
 
 /**
- * 加载数据
+ * Load data
  */
 async function loadData() {
   stats.value = await getGameStats()
@@ -276,7 +314,7 @@ async function loadData() {
 }
 
 /**
- * 获取评级百分比
+ * Get rank percentage
  */
 function getRankPercentage(count: number): number {
   if (!stats.value || stats.value.totalGames === 0) return 0
@@ -284,7 +322,7 @@ function getRankPercentage(count: number): number {
 }
 
 /**
- * 格式化游戏时间
+ * Format play time
  */
 function formatPlayTime(seconds: number): string {
   if (seconds < 60) return `${seconds}s`
@@ -296,32 +334,32 @@ function formatPlayTime(seconds: number): string {
 }
 
 /**
- * 格式化时间戳
+ * Format timestamp
  */
 function formatTime(timestamp: number): string {
   const date = new Date(timestamp)
   const now = new Date()
   const diff = now.getTime() - date.getTime()
   
-  // 1小时内
+  // 1 hour
   if (diff < 3600000) {
     const minutes = Math.floor(diff / 60000)
     return minutes === 0 ? 'just now' : `${minutes}m ago`
   }
   
-  // 今天
+
   if (date.toDateString() === now.toDateString()) {
     return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
   }
   
-  // 昨天
+
   const yesterday = new Date(now)
   yesterday.setDate(yesterday.getDate() - 1)
   if (date.toDateString() === yesterday.toDateString()) {
     return 'Yesterday ' + date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
   }
   
-  // 其他
+
   return date.toLocaleDateString('en-US', { 
     month: 'numeric', 
     day: 'numeric',
@@ -330,9 +368,7 @@ function formatTime(timestamp: number): string {
   })
 }
 
-/**
- * 确认清空数据
- */
+
 async function confirmClearData() {
   if (confirm('Are you sure you want to clear all game data? This cannot be undone!')) {
     await clearGameData()
@@ -342,7 +378,7 @@ async function confirmClearData() {
   }
 }
 
-// 生命周期
+
 onMounted(async () => {
   await loadData()
   console.log('[GameMenu] Game menu loaded')
@@ -356,10 +392,12 @@ onMounted(async () => {
   min-height: 600px;
   display: flex;
   flex-direction: column;
-  background: #f8f9fa;
+  background: #000000;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 24px;
 }
 
-/* ========== 菜单内容 ========== */
+
 .menu-content {
   flex: 1;
   display: flex;
@@ -372,42 +410,52 @@ onMounted(async () => {
   justify-content: space-between;
   align-items: center;
   padding: 20px 24px;
-  background: white;
-  border-bottom: 1px solid #e5e7eb;
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .menu-header h2 {
   margin: 0;
   font-size: 20px;
-  font-weight: bold;
-  color: #333;
+  font-weight: 600;
+  color: white;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.header-icon {
+  width: 24px;
+  height: 24px;
+  color: white;
 }
 
 .btn-close {
   width: 32px;
   height: 32px;
   border: none;
-  background: #f3f4f6;
+  background: rgba(255, 255, 255, 0.1);
   border-radius: 50%;
   font-size: 18px;
-  color: #666;
+  color: white;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.3s ease;
 }
 
 .btn-close:hover {
-  background: #e5e7eb;
+  background: rgba(255, 255, 255, 0.15);
   transform: rotate(90deg);
 }
 
-/* ========== 统计概览 ========== */
+
 .stats-overview {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 12px;
   padding: 16px 24px;
-  background: white;
-  border-bottom: 1px solid #e5e7eb;
+  background: rgba(255, 255, 255, 0.02);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .stat-card {
@@ -415,13 +463,17 @@ onMounted(async () => {
   align-items: center;
   gap: 12px;
   padding: 12px;
-  background: linear-gradient(135deg, #f5f7ff 0%, #fff 100%);
-  border-radius: 10px;
-  border: 1px solid #e5e7eb;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(20px);
 }
 
 .stat-icon {
-  font-size: 28px;
+  width: 28px;
+  height: 28px;
+  color: white;
+  flex-shrink: 0;
 }
 
 .stat-info {
@@ -431,16 +483,16 @@ onMounted(async () => {
 
 .stat-label {
   font-size: 11px;
-  color: #666;
+  color: rgba(255, 255, 255, 0.6);
 }
 
 .stat-value {
   font-size: 16px;
-  font-weight: bold;
-  color: #667eea;
+  font-weight: 600;
+  color: white;
 }
 
-/* ========== 游戏列表 ========== */
+
 .games-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -450,53 +502,57 @@ onMounted(async () => {
 }
 
 .game-card {
-  background: white;
-  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 20px;
   padding: 16px;
   text-align: center;
   cursor: pointer;
-  transition: all 0.3s;
-  border: 2px solid transparent;
+  transition: all 0.3s ease;
+  border: 1px solid rgba(255, 255, 255, 0.1);
   display: flex;
   flex-direction: column;
   min-height: 200px;
+  backdrop-filter: blur(20px);
 }
 
 .game-card:not(.coming-soon):hover {
   transform: translateY(-4px);
-  box-shadow: 0 8px 24px rgba(102, 126, 234, 0.2);
-  border-color: #667eea;
+  box-shadow: 0 8px 24px rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.08);
 }
 
 .game-card.coming-soon {
-  opacity: 0.6;
+  opacity: 0.4;
   cursor: not-allowed;
   position: relative;
 }
 
 .game-icon {
-  font-size: 48px;
+  width: 48px;
+  height: 48px;
   margin-bottom: 12px;
+  color: white;
 }
 
 .game-title {
   margin: 0 0 8px 0;
   font-size: 16px;
-  font-weight: bold;
-  color: #333;
+  font-weight: 600;
+  color: white;
 }
 
 .game-desc {
   margin: 0 0 12px 0;
   font-size: 12px;
-  color: #666;
+  color: rgba(255, 255, 255, 0.6);
   line-height: 1.5;
   flex: 1;
 }
 
 .game-stats {
   font-size: 11px;
-  color: #999;
+  color: rgba(255, 255, 255, 0.5);
   margin-bottom: 12px;
 }
 
@@ -504,70 +560,83 @@ onMounted(async () => {
   width: 100%;
   padding: 10px;
   border: none;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: rgba(255, 255, 255, 0.15);
   color: white;
   font-size: 13px;
-  font-weight: 600;
-  border-radius: 8px;
+  font-weight: 500;
+  border-radius: 12px;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.3s ease;
 }
 
 .btn-play:hover {
-  transform: scale(1.02);
+  background: rgba(255, 255, 255, 0.25);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 255, 255, 0.1);
 }
 
 .coming-soon-badge {
   padding: 6px 12px;
-  background: #fbbf24;
+  background: rgba(255, 255, 255, 0.2);
   color: white;
   font-size: 11px;
-  font-weight: bold;
+  font-weight: 600;
   border-radius: 12px;
   margin: 0 auto;
 }
 
-/* ========== 底部操作 ========== */
+
 .menu-footer {
   display: flex;
   gap: 12px;
   padding: 16px 24px;
-  background: white;
-  border-top: 1px solid #e5e7eb;
+  background: rgba(255, 255, 255, 0.02);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .btn-footer {
   flex: 1;
   padding: 12px;
-  border: 1px solid #d1d5db;
-  background: white;
-  color: #666;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.05);
+  color: white;
   font-size: 13px;
-  font-weight: 600;
-  border-radius: 8px;
+  font-weight: 500;
+  border-radius: 12px;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.footer-icon {
+  width: 16px;
+  height: 16px;
+  color: white;
 }
 
 .btn-footer:hover {
-  border-color: #667eea;
-  color: #667eea;
-  background: #f5f7ff;
+  border-color: rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.1);
 }
 
-/* ========== 模态框 ========== */
+
 .modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.8);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 1000;
   animation: fadeIn 0.2s;
+  backdrop-filter: blur(10px);
 }
 
 @keyframes fadeIn {
@@ -577,8 +646,9 @@ onMounted(async () => {
 
 .stats-panel,
 .records-panel {
-  background: white;
-  border-radius: 16px;
+  background: #000000;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 24px;
   width: 90%;
   max-width: 500px;
   max-height: 80vh;
@@ -603,14 +673,24 @@ onMounted(async () => {
   justify-content: space-between;
   align-items: center;
   padding: 20px 24px;
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.05);
 }
 
 .panel-header h3 {
   margin: 0;
   font-size: 18px;
-  font-weight: bold;
-  color: #333;
+  font-weight: 600;
+  color: white;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.panel-icon {
+  width: 20px;
+  height: 20px;
+  color: white;
 }
 
 .panel-body {
@@ -621,28 +701,29 @@ onMounted(async () => {
 
 .panel-footer {
   padding: 16px 24px;
-  border-top: 1px solid #e5e7eb;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
   text-align: center;
+  background: rgba(255, 255, 255, 0.02);
 }
 
 .btn-danger {
   padding: 10px 24px;
-  border: 1px solid #dc2626;
-  background: white;
-  color: #dc2626;
+  border: 1px solid rgba(255, 100, 100, 0.5);
+  background: rgba(255, 100, 100, 0.1);
+  color: rgba(255, 100, 100, 1);
   font-size: 13px;
-  font-weight: 600;
-  border-radius: 8px;
+  font-weight: 500;
+  border-radius: 12px;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.3s ease;
 }
 
 .btn-danger:hover {
-  background: #dc2626;
-  color: white;
+  background: rgba(255, 100, 100, 0.2);
+  border-color: rgba(255, 100, 100, 0.8);
 }
 
-/* ========== 统计详情 ========== */
+
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -654,24 +735,26 @@ onMounted(async () => {
   display: flex;
   flex-direction: column;
   padding: 16px;
-  background: #f8f9fa;
-  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  backdrop-filter: blur(20px);
 }
 
 .stats-label {
   font-size: 12px;
-  color: #666;
+  color: rgba(255, 255, 255, 0.6);
   margin-bottom: 8px;
 }
 
 .stats-value {
   font-size: 20px;
-  font-weight: bold;
-  color: #333;
+  font-weight: 600;
+  color: white;
 }
 
 .stats-value.highlight {
-  color: #667eea;
+  color: white;
 }
 
 .rank-distribution {
@@ -682,7 +765,7 @@ onMounted(async () => {
   margin: 0 0 16px 0;
   font-size: 14px;
   font-weight: 600;
-  color: #333;
+  color: white;
 }
 
 .rank-bars {
@@ -700,14 +783,14 @@ onMounted(async () => {
 .rank-label {
   width: 24px;
   font-size: 14px;
-  font-weight: bold;
+  font-weight: 600;
   text-align: center;
 }
 
 .rank-bar-wrapper {
   flex: 1;
   height: 24px;
-  background: #f3f4f6;
+  background: rgba(255, 255, 255, 0.1);
   border-radius: 12px;
   overflow: hidden;
 }
@@ -722,14 +805,14 @@ onMounted(async () => {
   width: 30px;
   text-align: right;
   font-size: 12px;
-  color: #666;
+  color: rgba(255, 255, 255, 0.6);
 }
 
 /* ========== 游戏记录 ========== */
 .empty-records {
   text-align: center;
   padding: 48px 24px;
-  color: #9ca3af;
+  color: rgba(255, 255, 255, 0.5);
 }
 
 .empty-records p {
@@ -751,13 +834,16 @@ onMounted(async () => {
   align-items: center;
   gap: 12px;
   padding: 12px;
-  background: #f8f9fa;
-  border-radius: 10px;
-  transition: all 0.2s;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(20px);
 }
 
 .record-item:hover {
-  background: #f3f4f6;
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.2);
 }
 
 .record-rank {
@@ -766,9 +852,10 @@ onMounted(async () => {
   line-height: 40px;
   text-align: center;
   font-size: 18px;
-  font-weight: bold;
+  font-weight: 600;
   color: white;
-  border-radius: 8px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.1);
 }
 
 .record-info {
@@ -778,24 +865,24 @@ onMounted(async () => {
 .record-score {
   font-size: 14px;
   font-weight: 600;
-  color: #333;
+  color: white;
   margin-bottom: 4px;
 }
 
 .record-details {
   font-size: 11px;
-  color: #666;
+  color: rgba(255, 255, 255, 0.6);
 }
 
 .record-points {
   font-size: 16px;
-  font-weight: bold;
-  color: #667eea;
+  font-weight: 600;
+  color: white;
 }
 
 .record-time {
   font-size: 11px;
-  color: #999;
+  color: rgba(255, 255, 255, 0.5);
   min-width: 70px;
   text-align: right;
 }

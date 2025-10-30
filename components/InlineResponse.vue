@@ -69,7 +69,7 @@ const getLabel = () => {
 
 <style scoped>
 .lifefi-inline-response {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   max-width: 600px;
   opacity: 0;
   transform: translateY(-10px);

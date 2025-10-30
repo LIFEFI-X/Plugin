@@ -1,7 +1,7 @@
 <template>
   <div v-if="visible" class="chat-dialog-overlay" @click.self="handleClose">
     <div class="chat-dialog">
-      <!-- Header --> 
+      <!-- Header -->
       <div class="chat-header">
         <div class="chat-title">
           <img :src="petAvatar" class="pet-avatar" alt="LifeFi" />
@@ -10,7 +10,7 @@
         <button class="close-btn" @click="handleClose">×</button>
       </div>
 
-      <!-- Context Information -->
+      <!-- Context information -->
       <div v-if="contextInfo.hasContext" class="context-info">
         <div class="context-section" v-if="contextInfo.knowledgeBases.length > 0">
           <div class="section-header" @click="toggleSection('kb')">
@@ -38,7 +38,7 @@
         </div>
       </div>
 
-      <!-- Chat Messages Area -->
+      <!-- Chat messages area -->
       <div class="chat-messages" ref="messagesContainer">
         <div v-for="(msg, index) in messages" :key="index" :class="['message', msg.role]">
           <div class="message-avatar" v-if="msg.role === 'assistant'">
@@ -53,7 +53,7 @@
           </div>
         </div>
 
-        <!-- Loading Status -->
+        <!-- Loading state -->
         <div v-if="isLoading" class="message assistant">
           <div class="message-avatar">
             <img :src="petAvatar" alt="LifeFi" />
@@ -66,7 +66,7 @@
         </div>
       </div>
 
-      <!-- Input Area -->
+      <!-- Input area -->
       <div class="chat-input-area">
         <textarea
           v-model="userInput"
@@ -119,7 +119,7 @@ const contextInfo = ref<{
   crossTabContexts: []
 })
 
-// Expanded sections state
+// Collapsed state
 const expandedSections = ref({
   kb: false,
   ctx: false
@@ -138,7 +138,7 @@ function toggleSection(section: 'kb' | 'ctx') {
 // Format time
 function formatTime(timestamp: number): string {
   const date = new Date(timestamp)
-  return date.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })
+  return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
 }
 
 // Scroll to bottom
@@ -149,7 +149,7 @@ async function scrollToBottom() {
   }
 }
 
-// Send message 
+// Send message
 async function handleSend() {
   const input = userInput.value.trim()
   if (!input || isLoading.value) return
@@ -205,7 +205,7 @@ function handleClose() {
   emit('close')
 }
 
-// Load context information 
+// Load context information
 async function loadContext() {
   try {
     const response = await browser.runtime.sendMessage({
@@ -228,10 +228,10 @@ async function loadContext() {
 // Initialize
 watch(() => props.visible, async (newVal) => {
   if (newVal) {
-    // Load context when opening dialog
+    // Load context when dialog opens
     await loadContext()
     
-    // If there is an initial message, send it automatically
+    // Auto-send if there's an initial message
     if (props.initialMessage && messages.value.length === 0) {
       userInput.value = props.initialMessage
       setTimeout(() => {
@@ -266,15 +266,17 @@ onMounted(() => {
 }
 
 .chat-dialog {
-  background: white;
-  border-radius: 16px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  background: #000000;
+  border-radius: 24px;
+  box-shadow: 0 8px 32px rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.15);
   width: 600px;
   max-width: 90vw;
   max-height: 80vh;
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  backdrop-filter: blur(20px);
 }
 
 .chat-header {
@@ -282,8 +284,9 @@ onMounted(() => {
   align-items: center;
   justify-content: space-between;
   padding: 16px 20px;
-  border-bottom: 1px solid #eee;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(20px);
   color: white;
 }
 
@@ -322,15 +325,15 @@ onMounted(() => {
   background: rgba(255, 255, 255, 0.3);
 }
 
-/* Context Information Area */
+
 .context-info {
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   max-height: 200px;
   overflow-y: auto;
 }
 
 .context-section {
-  border-bottom: 1px solid #f5f5f5;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .context-section:last-child {
@@ -342,44 +345,44 @@ onMounted(() => {
   align-items: center;
   justify-content: space-between;
   padding: 12px 20px;
-  background: #f9f9f9;
+  background: rgba(255, 255, 255, 0.03);
   cursor: pointer;
   font-size: 14px;
   font-weight: 500;
-  color: #666;
+  color: rgba(255, 255, 255, 0.8);
   user-select: none;
 }
 
 .section-header:hover {
-  background: #f5f5f5;
+  background: rgba(255, 255, 255, 0.05);
 }
 
 .toggle-icon {
   font-size: 12px;
-  color: #999;
+  color: rgba(255, 255, 255, 0.6);
 }
 
 .section-content {
   padding: 8px 20px 12px;
-  background: white;
+  background: rgba(255, 255, 255, 0.02);
 }
 
 .context-item {
   margin-bottom: 8px;
   padding: 8px;
-  background: #f9f9f9;
-  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
   font-size: 13px;
 }
 
 .item-title {
   font-weight: 500;
-  color: #333;
+  color: white;
   margin-bottom: 4px;
 }
 
 .item-content {
-  color: #666;
+  color: rgba(255, 255, 255, 0.7);
   font-size: 12px;
   line-height: 1.4;
 }
@@ -391,7 +394,7 @@ onMounted(() => {
   max-height: 500px;
   overflow-y: auto;
   padding: 20px;
-  background: #f5f5f5;
+  background: rgba(255, 255, 255, 0.02);
 }
 
 .message {
@@ -431,7 +434,8 @@ onMounted(() => {
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   color: white;
   display: flex;
   align-items: center;
@@ -446,23 +450,25 @@ onMounted(() => {
 }
 
 .message-text {
-  background: white;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   padding: 12px 16px;
-  border-radius: 12px;
+  border-radius: 16px;
   line-height: 1.6;
-  color: #333;
+  color: white;
   word-wrap: break-word;
   white-space: pre-wrap;
 }
 
 .message.user .message-text {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
   color: white;
 }
 
 .message-time {
   font-size: 11px;
-  color: #999;
+  color: rgba(255, 255, 255, 0.5);
   margin-top: 4px;
   padding: 0 4px;
 }
@@ -471,15 +477,16 @@ onMounted(() => {
   display: flex;
   gap: 4px;
   padding: 12px 16px;
-  background: white;
-  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
 }
 
 .loading-dots span {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: #999;
+  background: rgba(255, 255, 255, 0.6);
   animation: dotFlashing 1s infinite;
 }
 
@@ -505,51 +512,55 @@ onMounted(() => {
   display: flex;
   gap: 12px;
   padding: 16px 20px;
-  border-top: 1px solid #eee;
-  background: white;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.02);
 }
 
 .chat-input-area textarea {
   flex: 1;
-  border: 1px solid #ddd;
-  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
   padding: 10px 12px;
   font-size: 14px;
-  font-family: inherit;
+  font-family: 'Poppins';
   resize: none;
   transition: border-color 0.2s;
+  color: white;
 }
 
 .chat-input-area textarea:focus {
   outline: none;
-  border-color: #667eea;
+  border-color: rgba(255, 255, 255, 0.3);
 }
 
 .chat-input-area textarea:disabled {
-  background: #f5f5f5;
+  background: rgba(255, 255, 255, 0.02);
   cursor: not-allowed;
+  opacity: 0.5;
 }
 
 .send-btn {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: rgba(255, 255, 255, 0.15);
   color: white;
-  border: none;
-  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
   padding: 0 24px;
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
-  transition: opacity 0.2s, transform 0.2s;
+  transition: all 0.3s ease;
   white-space: nowrap;
 }
 
 .send-btn:hover:not(:disabled) {
-  opacity: 0.9;
+  background: rgba(255, 255, 255, 0.25);
+  border-color: rgba(255, 255, 255, 0.3);
   transform: translateY(-1px);
 }
 
 .send-btn:disabled {
-  opacity: 0.5;
+  opacity: 0.3;
   cursor: not-allowed;
   transform: none;
 }
@@ -567,13 +578,13 @@ onMounted(() => {
 
 .chat-messages::-webkit-scrollbar-thumb,
 .context-info::-webkit-scrollbar-thumb {
-  background: #ccc;
+  background: rgba(255, 255, 255, 0.15);
   border-radius: 3px;
 }
 
 .chat-messages::-webkit-scrollbar-thumb:hover,
 .context-info::-webkit-scrollbar-thumb:hover {
-  background: #999;
+  background: rgba(255, 255, 255, 0.25);
 }
 </style>
 

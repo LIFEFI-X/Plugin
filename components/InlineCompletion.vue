@@ -32,17 +32,18 @@ const emit = defineEmits<{
   position: fixed;
   z-index: 2147483647;
   pointer-events: none;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-  background: white;
+  font-family:'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  background: #000000;
   padding: 6px 12px;
-  border-radius: 6px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   display: flex;
   align-items: center;
   gap: 8px;
   max-width: 400px;
   animation: fadeIn 0.2s ease-out;
+  backdrop-filter: blur(20px);
 }
 
 @keyframes fadeIn {
@@ -57,16 +58,16 @@ const emit = defineEmits<{
 }
 
 .suggestion-text {
-  color: #667eea;
+  color: white;
   font-size: 14px;
   font-weight: 500;
 }
 
 .suggestion-hint {
   padding: 2px 8px;
-  background: #667eea;
+  background: rgba(255, 255, 255, 0.15);
   color: white;
-  border-radius: 4px;
+  border-radius: 6px;
   font-size: 11px;
   font-weight: 500;
   white-space: nowrap;

@@ -186,6 +186,28 @@ export const zhCN: Locale = {
       noModel: '未找到对应的模型',
       noResponse: 'AI 没有返回响应'
     },
+    nft: {
+      bindWallet: '绑定钱包',
+      equipPet: '装备伙伴',
+      walletHint: '绑定您的钱包地址以解锁您的 LifeFi 伙伴',
+      walletPlaceholder: '输入您的钱包地址 (SOL)',
+      bind: '绑定',
+      unbind: '解绑钱包',
+      walletAddress: '钱包',
+      equipped: '已装备',
+      equip: '装备',
+      nftPet: 'NFT 伙伴',
+      moreCompanion: '更多伙伴'
+    },
+    gpt: {
+      selectPet: '选择 LifeFi 伙伴',
+      currentRate: '当前积分倍率',
+      unlock: '解锁',
+      active: '已激活',
+      locked: '已锁定',
+      tier: '等级',
+      gptPets: '积分解锁伙伴'
+    },
     messages: {
       diana: [
         '嗨！我是 LifeFi，你的专属写作小助手~😘',

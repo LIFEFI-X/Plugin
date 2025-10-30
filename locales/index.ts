@@ -182,6 +182,28 @@ export interface Locale {
       noModel: string
       noResponse: string
     }
+    nft: {
+      bindWallet: string
+      equipPet: string
+      walletHint: string
+      walletPlaceholder: string
+      bind: string
+      unbind: string
+      walletAddress: string
+      equipped: string
+      equip: string
+      nftPet: string
+      moreCompanion: string
+    }
+    gpt: {
+      selectPet: string
+      currentRate: string
+      unlock: string
+      active: string
+      locked: string
+      tier: string
+      gptPets: string
+    }
     messages: {
       diana: string[]
       ava: string[]

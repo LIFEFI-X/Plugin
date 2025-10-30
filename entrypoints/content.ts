@@ -13,6 +13,7 @@ import { getCaretPosition, getInputContext, insertTextAtCursor } from '@/utils/c
 import { t, loadLanguage } from '@/utils/i18n'
 import { handlePageActive, detectPlatform } from '@/utils/tracking'
 import { getRecommendation, shouldShowRecommendation } from '@/utils/recommendations'
+import { loadPoppinsFonts } from '@/utils/fonts'
 import type { HistoryRecord } from '@/types'
 import type { AIProvider, AIModel } from '@/types/provider'
 import type { CrossTabContext } from '@/types/knowledge'
@@ -26,6 +27,9 @@ export default defineContentScript({
   runAt: 'document_end',
   async main() {
     console.log('lifefi content script loaded')
+    
+    // Load Poppins fonts first
+    loadPoppinsFonts()
     
     // Load language settings
     await loadLanguage()
@@ -181,7 +185,7 @@ function initWriteBox() {
       border-radius: 3px;
       font-size: 11px;
       font-weight: 500;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       display: none;
       white-space: nowrap;
     `
@@ -251,6 +255,7 @@ function initWriteBox() {
       return
     }
     
+
     console.log('[Selection] ✅ Non-pet element, continuing text selection processing')
     
     setTimeout(() => {
@@ -383,7 +388,7 @@ function initWriteBox() {
       padding: 8px 0;
       z-index: 2147483647;
       min-width: 180px;
-      font-family: system-ui, -apple-system, sans-serif;
+      font-family: 'Poppins', system-ui, -apple-system, sans-serif;
     `
     
     const createMenuItem = (text: string, emoji: string, handler: () => void) => {
@@ -558,7 +563,7 @@ function initWriteBox() {
         display: flex;
         align-items: center;
         gap: 10px;
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       ">
         <div style="
           width: 16px;
@@ -738,7 +743,7 @@ function initWriteBox() {
         border-radius: 8px;
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
         z-index: 999999;
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
         font-size: 14px;
         animation: slideIn 0.3s ease-out;
         max-width: 400px;
@@ -1222,7 +1227,7 @@ function initWriteBox() {
           
           window.postMessage({
             type: 'LIFEFI_PET_MESSAGE',
-            message: 'Great! You earned 200 GPT for checking out the recommendation! 🎉'
+            message: 'Great! You earned 200 CPoint for checking out the recommendation! 🎉'
           }, '*')
           
           window.postMessage({
@@ -1318,7 +1323,7 @@ function initWriteBox() {
           
           window.postMessage({
             type: 'LIFEFI_PET_MESSAGE',
-            message: `Congrats! You earned ${result.rewardClaimed.reward} GPT! 🎉`
+            message: `Congrats! You earned ${result.rewardClaimed.reward} CPoint! 🎉`
           }, '*')
           
           window.postMessage({

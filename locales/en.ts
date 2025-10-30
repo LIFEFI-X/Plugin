@@ -186,6 +186,28 @@ export const en: Locale = {
       noModel: 'Model not found',
       noResponse: 'No response from AI'
     },
+    nft: {
+      bindWallet: 'Bind Wallet',
+      equipPet: 'Equip Companion',
+      walletHint: 'Bind your wallet address to unlock your LifeFi Companion',
+      walletPlaceholder: 'Enter your wallet address (SOL)',
+      bind: 'Bind',
+      unbind: 'Unbind Wallet',
+      walletAddress: 'Wallet',
+      equipped: 'Equipped',
+      equip: 'Equip',
+      nftPet: 'NFT Companion',
+      moreCompanion: 'More Companion'
+    },
+    gpt: {
+      selectPet: 'Select LifeFi Companion',
+      currentRate: 'Current CPoint Rate',
+      unlock: 'Unlock',
+      active: 'Active',
+      locked: 'Locked',
+      tier: 'Tier',
+      gptPets: 'CPoint Unlockable Companions'
+    },
     messages: {
       diana: [
         'Hi! I\'m LifeFi, your writing assistant~😘',

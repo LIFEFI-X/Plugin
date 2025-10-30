@@ -1,3 +1,8 @@
+/* 
+  Poppins fonts are loaded dynamically via utils/fonts.ts
+  to ensure correct URLs in browser extension context
+*/
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;

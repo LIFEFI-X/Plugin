@@ -8,7 +8,7 @@
   />
   
   <div class="asoul-pet-container">
-    <!-- Pet Image -->
+      <!-- Pet Image -->
     <img
       v-show="showPet"
       :src="currentImage"
@@ -22,8 +22,7 @@
       @drop="handleDrop"
       @selectstart.prevent
     />
-    
-    <!-- Settings/Game/Task Panel -->
+     <!-- Settings/Game/Task Panel -->
     <div v-if="showSettings" class="settings-panel" :style="settingsStyle">
       <!-- Game View -->
       <div v-if="showGameInPanel" class="game-view">
@@ -32,47 +31,158 @@
       
       <!-- Task View -->
       <div v-else-if="showTaskInPanel" class="task-view">
-        <button class="panel-close-btn" @click="closeTaskPanel">← Back</button>
         <div class="task-content">
-          <TaskPanel />
+          <TaskPanel @back="closeTaskPanel" />
         </div>
       </div>
+            <!-- Settings View -->
       
-      <!-- Settings View -->
       <div v-else class="settings-view">
         <div class="settings-header">
-          <h3>{{ t('pet.selectCharacter') }}</h3>
-          <button class="restore-pet-btn" @click="restorePet" title="Restore to Pet">
-            <span class="restore-icon">🐾</span>
+          <h3>{{ isWalletBound ? t('pet.nft.equipPet') : t('pet.gpt.selectPet') }}</h3>
+          <button class="restore-pet-btn" @click="restorePet" title="Restore to LifeFi Companion">
+            <svg class="restore-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M7 10L12 5L17 10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M7 14L12 19L17 14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
           </button>
         </div>
-        <div class="character-grid">
-          <div
-            v-for="char in characters"
-            :key="char"
-            :class="['character-item', { active: currentActor === char }]"
-            @click="changeCharacter(char)"
-          >
-            <img :src="getCharacterImage(char)" :alt="t(`pet.characters.${char}`)" />
-            <span>{{ t(`pet.characters.${char}`) }}</span>
+
+        <!-- Wallet Binding Section (shown when not wallet bound) -->
+        <div v-if="!isWalletBound" class="wallet-binding-section">
+          <p class="wallet-hint">{{ t('pet.nft.walletHint') }}</p>
+          <div class="wallet-input-group">
+            <input
+              v-model="walletAddress"
+              type="text"
+              :placeholder="t('pet.nft.walletPlaceholder')"
+              class="wallet-input"
+              @keyup.enter="bindWallet"
+            />
+            <button @click="bindWallet" class="bind-btn">
+              {{ t('pet.nft.bind') }}
+            </button>
           </div>
         </div>
-        
-        <!-- Shortcut entry -->
-        <div class="settings-actions">
+
+        <!-- Character Grid -->
+        <div v-if="isWalletBound">
+          <!-- Wallet Status -->
+          <div class="wallet-status">
+            <p class="wallet-info">
+              <span class="wallet-label">{{ t('pet.nft.walletAddress') }}:</span>
+              <span class="wallet-address">{{ walletAddress.slice(0, 6) }}...{{ walletAddress.slice(-4) }}</span>
+              <button @click="unbindWallet" class="unbind-btn" :title="t('pet.nft.unbind')">✕</button>
+            </p>
+          </div>
+
+          <!-- CPoint Balance Display (after wallet binding) -->
+          <div class="cpoint-balance-section">
+            <div class="cpoint-balance-display">
+              <span class="cpoint-icon">CP</span>
+              <span class="cpoint-amount">{{ cpointBalance }}</span>
+              <span class="cpoint-label">CPoint</span>
+            </div>
+            <p class="cpoint-rate-info">
+              {{ t('pet.gpt.currentRate') }}: <strong>{{ currentCpointRate }}x</strong>
+              <span class="rate-pet">({{ t(`pet.characters.${currentActor}`) }})</span>
+            </p>
+          </div>
+
+          <!-- Luna NFT Section -->
+          <div class="section-header nft-section-header">
+            <h4>{{ t('pet.nft.nftPet') }}</h4>
+          </div>
+          <div class="character-grid">
+            <div
+              v-for="char in availableCharacters"
+              :key="char"
+              :class="['character-item', { active: currentActor === char }, 'nft-pet']"
+              @click="changeCharacter(char)"
+            >
+              <img :src="getCharacterImage(char)" :alt="t(`pet.characters.${char}`)" />
+              <span>{{ t(`pet.characters.${char}`) }}</span>
+              <span class="equip-badge">{{ currentActor === char ? t('pet.nft.equipped') : t('pet.nft.equip') }}</span>
+              <div class="pet-rate-badge nft-rate">{{ CPOINT_TIER_CONFIG[char].cpointRate }}x CPoint</div>
+            </div>
+          </div>
+
+          <!-- More Companion Button -->
+          <div class="more-companion-section">
+            <a href="https://www.lifefi.io/" target="_blank" class="more-companion-btn">
+              {{ t('pet.nft.moreCompanion') }} →
+            </a>
+          </div>
+
+          <!-- CPoint Unlockable Companions Section -->
+          <div class="section-header cpoint-section-header">
+            <span class="section-icon">CP</span>
+            <h4>{{ t('pet.gpt.gptPets') }}</h4>
+          </div>
+          <div class="character-grid">
+            <div
+              v-for="char in cpointUnlockablePets"
+              :key="char"
+              :class="[
+                'character-item',
+                { active: currentActor === char },
+                { locked: !unlockedPets.has(char) },
+                { unlocked: unlockedPets.has(char) }
+              ]"
+              @click="unlockedPets.has(char) ? changeCharacter(char) : null"
+            >
+              <img :src="getCharacterImage(char)" :alt="t(`pet.characters.${char}`)" />
+              <span class="char-name">{{ t(`pet.characters.${char}`) }}</span>
+
+              <!-- Unlocked pet info -->
+              <div v-if="unlockedPets.has(char)" class="pet-info">
+                <div class="pet-rate-badge">{{ CPOINT_TIER_CONFIG[char].cpointRate }}x CPoint</div>
+                <span v-if="currentActor === char" class="active-badge">{{ t('pet.gpt.active') }}</span>
+              </div>
+
+              <!-- Locked pet info -->
+              <div v-else class="lock-overlay">
+                <svg class="lock-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <rect x="5" y="11" width="14" height="10" rx="2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  <path d="M8 11V7C8 4.79086 9.79086 3 12 3C14.2091 3 16 4.79086 16 7V11" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  <circle cx="12" cy="16" r="1.5" fill="currentColor"/>
+                </svg>
+                <div class="unlock-cost">{{ CPOINT_TIER_CONFIG[char].unlockCost }} CPoint</div>
+                <div class="unlock-progress-bar">
+                  <div
+                    class="unlock-progress-fill"
+                    :style="{ width: getUnlockProgress(char) + '%' }"
+                  ></div>
+                </div>
+                <button
+                  v-if="canUnlockPet(char)"
+                  @click.stop="unlockPet(char)"
+                  class="unlock-btn"
+                >
+                  {{ t('pet.gpt.unlock') }}
+                </button>
+                <div v-else class="tier-badge">Tier {{ CPOINT_TIER_CONFIG[char].tier }}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div v-else>
+          <!-- Before wallet binding: Show nothing or binding prompt -->
+        </div>
+
+        <!--  (only shown when wallet is bound) -->
+        <div v-if="isWalletBound" class="settings-actions">
           <button @click="openTaskPanel" class="action-btn task-btn">
-            <span class="btn-icon">🎯</span>
             <span class="btn-text">Daily Tasks</span>
           </button>
           <button @click="openGamePanel" class="action-btn game-btn">
-            <span class="btn-icon">🎮</span>
             <span class="btn-text">Game Center</span>
           </button>
         </div>
       </div>
     </div>
     
-    <!-- Message Bubble -->
+  <!-- Message Bubble -->
     <div
       v-if="messageVisible"
       :class="['message-bubble', { 'is-recommendation': recommendationData }]"
@@ -121,14 +231,68 @@ const TABLE = {
   luna: { bait: 'moon', cursor: 'cursor-luna.png' }
 }
 
-// State Management
-const currentActor = ref<'diana' | 'ava' | 'bella' | 'carol' | 'eileen' | 'luna'>('luna')
+// CPoint Tier System Configuration
+// Each companion has unlock cost and CPoint earning rate multiplier
+const CPOINT_TIER_CONFIG = {
+  // Free tier - default companion
+  carol: {
+    unlockCost: 0,
+    cpointRate: 1.0,
+    tier: 0,
+    description: 'Default companion - Basic CPoint earning rate'
+  },
+  // Tier 1 - Entry level companions
+  diana: {
+    unlockCost: 100,
+    cpointRate: 1.2,
+    tier: 1,
+    description: 'Tier 1 - 20% faster CPoint earning'
+  },
+  bella: {
+    unlockCost: 100,
+    cpointRate: 1.2,
+    tier: 1,
+    description: 'Tier 1 - 20% faster CPoint earning'
+  },
+  // Tier 2 - Mid level companions
+  ava: {
+    unlockCost: 250,
+    cpointRate: 1.5,
+    tier: 2,
+    description: 'Tier 2 - 50% faster CPoint earning'
+  },
+  eileen: {
+    unlockCost: 250,
+    cpointRate: 1.5,
+    tier: 2,
+    description: 'Tier 2 - 50% faster CPoint earning'
+  },
+  // Tier 3 - NFT exclusive (highest rate)
+  luna: {
+    unlockCost: 0, // Unlocked via wallet binding, not CPoint
+    cpointRate: 2.0,
+    tier: 3,
+    description: 'NFT Exclusive - 100% faster CPoint earning (Highest rate!)'
+  }
+} as const
+
+// CPoint earning activities and base rewards
+const CPOINT_ACTIVITIES = {
+  WRITING: 1, // 1 CPoint per 100 characters written
+  TASK_COMPLETE: 10, // 10 CPoint per task completed
+  GAME_PLAY: 5, // 5 CPoint per game played
+  DAILY_LOGIN: 20, // 20 CPoint for daily login
+  EATING_MODE: 2 // 2 CPoint per eating mode activation
+} as const
+
+// 状态管理
+const currentActor = ref<'diana' | 'ava' | 'bella' | 'carol' | 'eileen' | 'luna'>('carol')
 const currentStatus = ref<string>('thinking')
-const position = ref({ x: 20, y: window.innerHeight - 130 }) // Default: bottom-left corner
+const position = ref({ x: 20, y: window.innerHeight - 130 })// Default: bottom-left corner
 const faceDirection = ref<'left' | 'right'>('right')
 
 // Display Control
-const showPet = ref(true) // Control pet show/hide
+const showPet = ref(true)// Control pet show/hide
 
 // Message
 const messageVisible = ref(false)
@@ -152,12 +316,12 @@ const baitPosition = ref({ x: 0, y: 0 })
 const isDragging = ref(false)
 const dragStart = ref({ x: 0, y: 0 })
 const initialPos = ref({ x: 0, y: 0 })
-let isMouseDown = false // Global mouse down flag
+let isMouseDown = false  // Global mouse down flag
 
 // Keyboard Control State
 const keyPressed = ref<Set<string>>(new Set())
 const moveSpeed = 5 // Move speed (pixels/frame)
-const jumpHeight = 100 // Jump height
+const jumpHeight = 100// Jump height
 let animationFrameId: number | null = null
 let isJumping = false
 
@@ -165,9 +329,75 @@ let isJumping = false
 const showSettings = ref(false)
 const showGameInPanel = ref(false)
 const showTaskInPanel = ref(false)
+// Base characters available without wallet binding (excluding Luna)
+const baseCharacters = ['diana', 'ava', 'bella', 'carol', 'eileen'] as const
 const characters = ['diana', 'ava', 'bella', 'carol', 'eileen','luna'] as const
 
-// Dialog
+// Wallet binding state
+const walletAddress = ref<string>('')
+const isWalletBound = ref(false)
+const showWalletInput = ref(false)
+
+// CPoint System State
+const cpointBalance = ref<number>(0) // User's total CPoint balance
+const unlockedPets = ref<Set<string>>(new Set(['carol'])) // Carol is unlocked by default
+const characterWritingCount = ref<number>(0) // Track writing for CPoint earning
+const lastLoginDate = ref<string>('') // Track daily login bonus
+
+// Computed property for available characters based on wallet binding and CPoint unlocks
+const availableCharacters = computed(() => {
+  if (isWalletBound.value) {
+    // After wallet binding: show Luna (NFT) only
+    return ['luna'] as const
+  } else {
+    // Before wallet binding: don't show any pets (force wallet binding first)
+    return [] as const
+  }
+})
+
+// Computed property for CPoint-unlockable companions (only shown after wallet binding)
+const cpointUnlockablePets = computed(() => {
+  if (isWalletBound.value) {
+    // Show all Q-version companions with their unlock status after wallet binding
+    return baseCharacters
+  } else {
+    // Hide CPoint companions before wallet binding
+    return [] as const
+  }
+})
+
+// Computed property for current CPoint earning rate
+const currentCpointRate = computed(() => {
+  const config = CPOINT_TIER_CONFIG[currentActor.value]
+  return config ? config.cpointRate : 1.0
+})
+
+// Check if a pet can be unlocked
+function canUnlockPet(petName: string): boolean {
+  const config = CPOINT_TIER_CONFIG[petName as keyof typeof CPOINT_TIER_CONFIG]
+  if (!config) return false
+  const canUnlock = cpointBalance.value >= config.unlockCost && !unlockedPets.value.has(petName)
+
+  // Debug logging
+  if (cpointBalance.value >= config.unlockCost * 0.8) { // Log when close to unlocking
+    console.log(`[CPoint] canUnlockPet check for ${petName}:`, {
+      cpointBalance: cpointBalance.value,
+      unlockCost: config.unlockCost,
+      isUnlocked: unlockedPets.value.has(petName),
+      canUnlock
+    })
+  }
+
+  return canUnlock
+}
+
+// Get unlock progress percentage
+function getUnlockProgress(petName: string): number {
+  const config = CPOINT_TIER_CONFIG[petName as keyof typeof CPOINT_TIER_CONFIG]
+  if (!config || config.unlockCost === 0) return 100
+  return Math.min(100, (cpointBalance.value / config.unlockCost) * 100)
+}
+
 const showChatDialog = ref(false)
 const chatInitialMessage = ref('')
 
@@ -271,7 +501,7 @@ function handlePetClick(e: MouseEvent) {
     return
   }
   
-  console.log('[ASoulPet] 👆👆 Pet double-clicked, showing character panel')
+  console.log('[ASoulPet] 👆👆 LifeFi Companion double-clicked, showing character panel')
   
   // Hide pet, show panel
   showPet.value = false
@@ -712,27 +942,48 @@ async function loadSettings() {
     const result = await browser.storage.sync.get('ASOUL_CONFIG')
     if (result.ASOUL_CONFIG) {
       const config = JSON.parse(result.ASOUL_CONFIG)
-      
+
       // Set character
       if (config.currentActor) {
         currentActor.value = config.currentActor
       }
-      
+
       // Set position
       if (config.position) {
         position.value = config.position
       }
-      
-      // Enable interaction features (only enable when explicitly configured as true)
+
+      // Load wallet binding state
+      if (config.walletAddress) {
+        walletAddress.value = config.walletAddress
+        isWalletBound.value = true
+      }
+
+      // Load CPoint system state
+      if (config.cpointBalance !== undefined) {
+        cpointBalance.value = config.cpointBalance
+      }
+      if (config.unlockedPets) {
+        unlockedPets.value = new Set(config.unlockedPets)
+      }
+      if (config.lastLoginDate) {
+        lastLoginDate.value = config.lastLoginDate
+      }
+
+      // Check and award daily login bonus
+      checkDailyLogin()
       if (config.followMouse === true) {
         enableFollowMouse()
       }
-      
+
       if (config.followClick === true) {
         enableClickTracking()
       }
-      
+
       console.log('[ASoulPet] Configuration loaded:', config)
+    } else {
+      // First time user - award daily login bonus
+      checkDailyLogin()
     }
   } catch (error) {
     console.error('[ASoulPet] Failed to load settings:', error)
@@ -745,9 +996,13 @@ async function saveSettings() {
       currentActor: currentActor.value,
       position: position.value,
       followMouse: followMouseEnabled,
-      followClick: clickTrackingEnabled
+      followClick: clickTrackingEnabled,
+      walletAddress: walletAddress.value,
+      cpointBalance: cpointBalance.value,
+      unlockedPets: Array.from(unlockedPets.value),
+      lastLoginDate: lastLoginDate.value
     }
-    
+
     await browser.storage.sync.set({
       ASOUL_CONFIG: JSON.stringify(config)
     })
@@ -756,16 +1011,132 @@ async function saveSettings() {
   }
 }
 
-// ==================== Lifecycle ====================
+// ==================== CPoint System Functions ====================
 
-// ==================== Text Eating Feature ====================
+// Award CPoint to user with multiplier based on current companion
+function awardCpoint(baseAmount: number, activityName: string = '') {
+  const multipliedAmount = Math.floor(baseAmount * currentCpointRate.value)
+  cpointBalance.value += multipliedAmount
+
+  saveSettings()
+
+  const message = activityName
+    ? `+${multipliedAmount} CPoint from ${activityName}! (${currentCpointRate.value}x rate)`
+    : `+${multipliedAmount} CPoint!`
+
+  showRandomMessage(message)
+
+  console.log(`[CPoint] Awarded ${multipliedAmount} CPoint (base: ${baseAmount}, rate: ${currentCpointRate.value}x)`)
+}
+
+// Check and award daily login bonus
+function checkDailyLogin() {
+  const today = new Date().toDateString()
+
+  if (lastLoginDate.value !== today) {
+    lastLoginDate.value = today
+    awardCpoint(CPOINT_ACTIVITIES.DAILY_LOGIN, 'Daily Login')
+    saveSettings()
+  }
+}
+
+// Unlock a companion with CPoint
+async function unlockPet(petName: string) {
+  console.log('[CPoint] unlockPet called with:', petName)
+  console.log('[CPoint] Current state:', {
+    cpointBalance: cpointBalance.value,
+    unlockedPets: Array.from(unlockedPets.value),
+    petName
+  })
+
+  const config = CPOINT_TIER_CONFIG[petName as keyof typeof CPOINT_TIER_CONFIG]
+
+  if (!config) {
+    console.error('[CPoint] Invalid pet:', petName)
+    showRandomMessage('Invalid pet')
+    return
+  }
+
+  if (unlockedPets.value.has(petName)) {
+    console.warn('[CPoint] LifeFi Companion already unlocked:', petName)
+    showRandomMessage('LifeFi Companion already unlocked')
+    return
+  }
+
+  if (cpointBalance.value < config.unlockCost) {
+    console.warn('[CPoint] Insufficient CPoint:', {
+      current: cpointBalance.value,
+      required: config.unlockCost,
+      shortfall: config.unlockCost - cpointBalance.value
+    })
+    showRandomMessage(`Need ${config.unlockCost - cpointBalance.value} more CPoint to unlock`)
+    return
+  }
+
+  console.log('[CPoint] Unlocking pet...', {
+    petName,
+    cost: config.unlockCost,
+    balanceBefore: cpointBalance.value
+  })
+
+  // Deduct CPoint and unlock companion
+  cpointBalance.value -= config.unlockCost
+  unlockedPets.value.add(petName)
+
+  console.log('[CPoint] Companion unlocked, saving settings...', {
+    balanceAfter: cpointBalance.value,
+    unlockedPets: Array.from(unlockedPets.value)
+  })
+
+  await saveSettings()
+
+  showRandomMessage(`${t(`pet.characters.${petName}`)} unlocked! (${config.cpointRate}x CPoint rate)`)
+
+  console.log(`[CPoint] Unlock complete for ${petName}`)
+}
+
+// Track writing activity and award CPoint
+function trackWritingActivity(charactersWritten: number) {
+  characterWritingCount.value += charactersWritten
+
+  // Award 1 CPoint per 100 characters
+  const cpointToAward = Math.floor(characterWritingCount.value / 100)
+
+  if (cpointToAward > 0) {
+    awardCpoint(cpointToAward * CPOINT_ACTIVITIES.WRITING, 'Writing')
+    characterWritingCount.value = characterWritingCount.value % 100
+  }
+}
+
+// Award CPoint for completing a task
+function awardTaskCpoint() {
+  awardCpoint(CPOINT_ACTIVITIES.TASK_COMPLETE, 'Task Completed')
+}
+
+// Award CPoint for playing a game
+function awardGameCpoint() {
+  awardCpoint(CPOINT_ACTIVITIES.GAME_PLAY, 'Game Played')
+}
+
+// Test function to manually award CPoint (for debugging)
+function testCpointAward() {
+  awardCpoint(10, 'Test')
+  console.log('[CPoint Test] Current actor:', currentActor.value)
+  console.log('[CPoint Test] Current rate:', currentCpointRate.value)
+  console.log('[CPoint Test] Current balance:', cpointBalance.value)
+  console.log('[CPoint Test] Unlocked companions:', Array.from(unlockedPets.value))
+}
+
+
 
 function toggleEatingMode() {
   eatingMode.value = !eatingMode.value
-  
+
   if (eatingMode.value) {
     showRandomMessage(t('pet.modes.eating'))
     startEating()
+    // Award CPoint for activating eating mode
+    awardCpoint(CPOINT_ACTIVITIES.EATING_MODE, 'Eating Mode')
   } else {
     showRandomMessage(t('pet.modes.normal'))
     stopEating()
@@ -935,9 +1306,61 @@ async function changeCharacter(char: typeof characters[number]) {
   updateCursor(char)
   await saveSettings()
   showRandomMessage(t('pet.greeting'))
-  
+
   // Restore to pet after selecting character
   restorePet()
+}
+
+// ==================== Wallet Binding Functions ====================
+
+function validateWalletAddress(address: string): boolean {
+  // Basic validation for common wallet address formats
+  // Ethereum: 0x followed by 40 hex characters
+  const ethPattern = /^0x[a-fA-F0-9]{40}$/
+  // Solana: 32-44 base58 characters
+  const solPattern = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/
+
+  return ethPattern.test(address) || solPattern.test(address)
+}
+
+async function bindWallet() {
+  const trimmedAddress = walletAddress.value.trim()
+
+  if (!trimmedAddress) {
+    showRandomMessage('Please enter a wallet address')
+    return
+  }
+
+  if (!validateWalletAddress(trimmedAddress)) {
+    showRandomMessage('Invalid wallet address format')
+    return
+  }
+
+  walletAddress.value = trimmedAddress
+  isWalletBound.value = true
+  showWalletInput.value = false
+
+  await saveSettings()
+
+  showRandomMessage('Wallet bound! Luna is now equipable!')
+}
+
+function unbindWallet() {
+  walletAddress.value = ''
+  isWalletBound.value = false
+
+  // If currently using Luna, switch back to Carol (default)
+  if (currentActor.value === 'luna') {
+    currentActor.value = 'carol'
+    updateCursor('carol')
+  }
+
+  saveSettings()
+  showRandomMessage('Wallet unbound')
+}
+
+function toggleWalletInput() {
+  showWalletInput.value = !showWalletInput.value
 }
 
 function updateCursor(actor: string) {
@@ -1051,43 +1474,49 @@ function handleWindowMessage(event: MessageEvent) {
   }
 }
 
-// 处理奖励动画
+
 function handleRewardAnimation(reward: number) {
-  // 隐藏倒计时
+
   hideCountdown()
   
-  // 播放开心动画
+
   updateStatus('happy')
-  
-  // 显示奖励消息
-  showRandomMessage(`+${reward} GPT! 🎉`)
-  
-  // 跳跃庆祝
+
+  showRandomMessage(`+${reward} CPoint! 🎉`)
+
   if (!isJumping) {
     performJump()
   }
   
-  // 2秒后恢复思考状态
+
   setTimeout(() => {
     updateStatus('thinking')
   }, 2000)
 }
 
-// 显示倒计时
+
 function showCountdown(platform: string, countdown: number, reward: number) {
-  // 如果platform为空或countdown为0，隐藏倒计时
   if (!platform || countdown <= 0 || reward <= 0) {
     hideCountdown()
     return
   }
-  
+
   const minutes = Math.floor(countdown / 60)
   const seconds = countdown % 60
   const timeStr = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
-  
+
+  // Calculate reward with current pet's multiplier
+  const multipliedReward = Math.floor(reward * currentCpointRate.value)
+
   const platformName = platform === 'x' ? '𝕏' : '▶️'
-  countdownMessage.value = `${timeStr} → ${reward}`
-  
+
+  // Show base reward and multiplied reward
+  if (currentCpointRate.value > 1.0) {
+    countdownMessage.value = `${timeStr} → ${reward} × ${currentCpointRate.value} = ${multipliedReward} CPoint`
+  } else {
+    countdownMessage.value = `${timeStr} → ${multipliedReward} CPoint`
+  }
+
   countdownVisible.value = true
 }
 
@@ -1136,7 +1565,7 @@ async function handleMessageClick() {
       // Show new message
       hideMessage()
       setTimeout(() => {
-        showRandomMessage('Opening recommendation... You\'ll earn 200 GPT!')
+        showRandomMessage('Opening recommendation... You\'ll earn 200 CPoint!')
       }, 100)
     } catch (error) {
       console.error('[ASoulPet] Failed to handle recommendation click:', error)
@@ -1147,20 +1576,39 @@ async function handleMessageClick() {
 onMounted(() => {
   loadSettings()
   startIdleAnimation()
-  
+
   // Default: facingToMouse (only change direction, no movement)
   enableFacingMouse()
-  
+
   // Initialize cursor
   updateCursor(currentActor.value)
-  
+
   // Start bath time check
   startBathTimeCheck()
-  
-  // Bind global mouse events (drag required)
+
+  // Listen for storage changes to update CPoint balance in real-time
+  browser.storage.onChanged.addListener((changes: any, areaName: string) => {
+    if (areaName === 'sync' && changes.ASOUL_CONFIG) {
+      const newConfig = changes.ASOUL_CONFIG.newValue
+      if (newConfig) {
+        try {
+          const config = typeof newConfig === 'string' ? JSON.parse(newConfig) : newConfig
+          if (config.cpointBalance !== undefined && config.cpointBalance !== cpointBalance.value) {
+            const oldBalance = cpointBalance.value
+            cpointBalance.value = config.cpointBalance
+            console.log('[ASoulPet] CPoint balance updated from storage:', { old: oldBalance, new: config.cpointBalance })
+          }
+        } catch (error) {
+          console.error('[ASoulPet] Failed to parse storage change:', error)
+        }
+      }
+    }
+  })
+
+
   document.addEventListener('mousemove', handleDocumentMouseMove)
   document.addEventListener('mouseup', handleDocumentMouseUp)
-  
+
   // Bind keyboard events
   document.addEventListener('keydown', handleKeyDown)
   document.addEventListener('keyup', handleKeyUp)
@@ -1168,7 +1616,7 @@ onMounted(() => {
   // Listen to window messages
   window.addEventListener('message', handleWindowMessage)
   
-  console.log('[ASoulPet] Pet initialized')
+  console.log('[ASoulPet] LifeFi Companion initialized')
   console.log('[ASoulPet] Current avatar:', currentActor.value, `(${t('pet.name')})`)
   console.log('[ASoulPet] facingToMouse: enabled (default)')
   console.log('[ASoulPet] followMouse: disabled (requires configuration)')
@@ -1202,7 +1650,7 @@ onUnmounted(() => {
     clearInterval(bathCheckTimer)
   }
   
-  // 清理事件监听
+
   disableFacingMouse()
   disableFollowMouse()
   disableClickTracking()
@@ -1212,8 +1660,7 @@ onUnmounted(() => {
   document.removeEventListener('keydown', handleKeyDown)
   document.removeEventListener('keyup', handleKeyUp)
   window.removeEventListener('message', handleWindowMessage)
-  
-  // 清理自定义光标样式
+
   const cursorStyle = document.getElementById('lifefi-custom-cursor')
   if (cursorStyle && cursorStyle.parentNode) {
     cursorStyle.parentNode.removeChild(cursorStyle)
@@ -1266,9 +1713,10 @@ onUnmounted(() => {
   position: fixed;
   max-width: 200px;
   padding: 8px 12px;
-  background-color: rgba(250, 235, 215, 0.95);
+  background-color: #000000;
+  border: 1.5px solid rgba(255, 255, 255, 0.3);
   border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
   z-index: 999999;
   pointer-events: none;
   animation: fadeIn 0.2s ease-in-out;
@@ -1276,8 +1724,8 @@ onUnmounted(() => {
 
 .message-bubble.is-recommendation {
   max-width: 280px;
-  background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
-  border: 2px solid #1d9bf0;
+  background: #000000;
+  border: 2px solid rgba(255, 255, 255, 0.4);
   cursor: pointer;
   pointer-events: all;
   transition: all 0.2s;
@@ -1285,20 +1733,21 @@ onUnmounted(() => {
 
 .message-bubble.is-recommendation:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(29, 155, 240, 0.3);
+  box-shadow: 0 4px 12px rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.6);
 }
 
 .message-bubble p {
   margin: 0;
   font-size: 13px;
-  color: #333;
+  color: white;
   line-height: 1.5;
   word-wrap: break-word;
   white-space: pre-line;
 }
 
 .message-bubble.is-recommendation p {
-  color: #0d47a1;
+  color: white;
   font-weight: 500;
 }
 
@@ -1306,15 +1755,16 @@ onUnmounted(() => {
 .countdown-text {
   position: fixed;
   padding: 4px 8px;
-  background: rgba(102, 126, 234, 0.9);
+  background: #000000;
   color: white;
+  border: 1.5px solid rgba(255, 255, 255, 0.3);
   border-radius: 4px;
   font-size: 11px;
   font-weight: 600;
   z-index: 999998;
   pointer-events: none;
   text-align: center;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
   letter-spacing: 0.5px;
   transform: translateX(-50%);
   animation: fadeIn 0.2s ease-in-out;
@@ -1353,23 +1803,49 @@ onUnmounted(() => {
   }
 }
 
-/* Settings Panel */
+
 .settings-panel {
   position: fixed;
-  background: white;
-  border-radius: 12px 12px 0 0;
-  box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.2);
+  background: #000000;
+  border-radius: 24px 24px 0 0;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.9);
   z-index: 999999;
   pointer-events: all;
   animation: slideUpFromBottom 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
   max-height: 80vh;
   display: flex;
   flex-direction: column;
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: none;
 }
 
 .settings-view {
   padding: 20px;
   min-width: 280px;
+  max-height: calc(80vh - 40px);
+  overflow-y: auto;
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.settings-view::-webkit-scrollbar {
+  width: 6px;
+}
+
+.settings-view::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 3px;
+}
+
+.settings-view::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 3px;
+}
+
+.settings-view::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.25);
 }
 
 .game-view {
@@ -1480,10 +1956,10 @@ onUnmounted(() => {
   color: #666;
 }
 
-/* Restore to Pet Button */
+
 .restore-pet-btn {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border: none;
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   color: white;
   cursor: pointer;
   padding: 8px 12px;
@@ -1492,14 +1968,16 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 8px;
-  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+  border-radius: 12px;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(255, 255, 255, 0.1);
 }
 
 .restore-pet-btn:hover {
-  transform: translateY(-2px) scale(1.05);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.5);
+  transform: translateY(-2px);
+  background: rgba(255, 255, 255, 0.25);
+  border-color: rgba(255, 255, 255, 0.3);
+  box-shadow: 0 4px 12px rgba(255, 255, 255, 0.15);
 }
 
 .restore-pet-btn:active {
@@ -1507,23 +1985,21 @@ onUnmounted(() => {
 }
 
 .restore-icon {
-  font-size: 20px;
-  animation: petIconBounce 2s ease-in-out infinite;
+  width: 20px;
+  height: 20px;
+  color: white;
+  transition: transform 0.3s ease;
 }
 
-@keyframes petIconBounce {
-  0%, 100% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.2);
-  }
+.restore-pet-btn:hover .restore-icon {
+  transform: scale(1.1);
 }
 
 .character-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 12px;
+  margin-bottom: 8px;
 }
 
 .character-item {
@@ -1531,23 +2007,25 @@ onUnmounted(() => {
   flex-direction: column;
   align-items: center;
   padding: 12px;
-  border: 2px solid #e0e0e0;
-  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 16px;
   cursor: pointer;
-  transition: all 0.2s;
-  background: white;
+  transition: all 0.3s ease;
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(20px);
 }
 
 .character-item:hover {
-  border-color: #ff69b4;
-  background: #fff5f9;
+  border-color: rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.08);
   transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(255, 105, 180, 0.2);
+  box-shadow: 0 4px 12px rgba(255, 255, 255, 0.1);
 }
 
 .character-item.active {
-  border-color: #ff1493;
-  background: #ffe4f1;
+  border-color: rgba(255, 255, 255, 0.4);
+  background: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 0 16px rgba(255, 255, 255, 0.15);
 }
 
 .character-item img {
@@ -1559,23 +2037,25 @@ onUnmounted(() => {
 
 .character-item span {
   font-size: 13px;
-  color: #666;
+  color: rgba(255, 255, 255, 0.8);
   font-weight: 500;
 }
 
 .character-item.active span {
-  color: #ff1493;
+  color: white;
   font-weight: 600;
 }
 
-/* Settings panel action buttons */
+
 .settings-actions {
   margin-top: 16px;
+  margin-bottom: 8px;
   padding-top: 16px;
-  border-top: 1px solid #f0f0f0;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
   display: flex;
   flex-direction: column;
   gap: 8px;
+  flex-shrink: 0;
 }
 
 .action-btn {
@@ -1585,32 +2065,23 @@ onUnmounted(() => {
   justify-content: center;
   gap: 8px;
   padding: 12px;
-  border: none;
-  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 16px;
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s;
-}
-
-.task-btn {
-  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  transition: all 0.3s ease;
+  backdrop-filter: blur(20px);
+  background: rgba(255, 255, 255, 0.05);
   color: white;
 }
 
-.task-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(245, 87, 108, 0.4);
-}
-
-.game-btn {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-}
-
+.task-btn:hover,
 .game-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.3);
+  box-shadow: 0 4px 12px rgba(255, 255, 255, 0.1);
 }
 
 .btn-icon {
@@ -1619,6 +2090,431 @@ onUnmounted(() => {
 
 .btn-text {
   font-size: 14px;
+}
+
+/* Wallet Binding Styles */
+.wallet-binding-section {
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 24px;
+  margin-bottom: 16px;
+}
+
+.wallet-hint {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.6);
+  margin-bottom: 16px;
+  line-height: 1.5;
+  text-align: center;
+}
+
+.wallet-input-group {
+  display: flex;
+  gap: 8px;
+}
+
+.wallet-input {
+  flex: 1;
+  padding: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  border-radius: 20px;
+  font-size: 14px;
+  outline: none;
+  transition: all 0.3s ease;
+  font-family: monospace;
+  color: white;
+}
+
+.wallet-input:focus {
+  border-color: rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.wallet-input::placeholder {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.bind-btn {
+  padding: 12px 24px;
+  background: rgba(255, 255, 255, 0.15);
+  color: white;
+  border: none;
+  border-radius: 16px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+.bind-btn:hover {
+  background: rgba(255, 255, 255, 0.25);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 255, 255, 0.1);
+}
+
+.bind-btn:active {
+  transform: translateY(0);
+}
+
+.wallet-status {
+  padding: 10px 16px;
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  margin-bottom: 12px;
+}
+
+.wallet-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: 13px;
+}
+
+.wallet-label {
+  color: rgba(255, 255, 255, 0.6);
+  font-weight: 500;
+}
+
+.wallet-address {
+  flex: 1;
+  color: rgba(255, 255, 255, 0.9);
+  font-family: monospace;
+  font-weight: 600;
+  font-size: 12px;
+}
+
+.unbind-btn {
+  padding: 4px 8px;
+  background: #f44336;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-weight: 600;
+}
+
+.unbind-btn:hover {
+  background: #d32f2f;
+  transform: scale(1.05);
+}
+
+.character-item.equipable {
+  position: relative;
+}
+
+.equip-badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  padding: 4px 8px;
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  color: white;
+  border-radius: 12px;
+  font-size: 10px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  box-shadow: 0 2px 4px rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+}
+
+.character-item.active .equip-badge {
+  background: rgba(255, 255, 255, 0.25);
+  border-color: rgba(255, 255, 255, 0.4);
+  box-shadow: 0 2px 4px rgba(255, 255, 255, 0.15);
+}
+
+/* CPoint System Styles */
+.cpoint-balance-section {
+  padding: 16px 20px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 20px;
+  margin-bottom: 16px;
+  backdrop-filter: blur(20px);
+  transition: all 0.3s ease;
+}
+
+.cpoint-balance-display {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.cpoint-icon {
+  font-size: 14px;
+  font-weight: 700;
+  color: white;
+  background: rgba(255, 255, 255, 0.15);
+  padding: 6px 10px;
+  border-radius: 8px;
+  letter-spacing: 1px;
+}
+
+.cpoint-amount {
+  font-size: 32px;
+  font-weight: 600;
+  color: white;
+  letter-spacing: -1px;
+}
+
+.cpoint-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.cpoint-rate-info {
+  text-align: center;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.6);
+  margin: 0;
+}
+
+.cpoint-rate-info strong {
+  color: white;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.rate-pet {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 12px;
+}
+
+/* More Companion Button */
+.more-companion-section {
+  padding: 12px 0;
+  text-align: center;
+}
+
+.more-companion-btn {
+  display: inline-block;
+  padding: 12px 24px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: white;
+  text-decoration: none;
+  border-radius: 16px;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+}
+
+.more-companion-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.3);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 255, 255, 0.1);
+}
+
+.more-companion-btn:active {
+  transform: translateY(0);
+}
+
+/* Locked Companion Styles */
+.character-item.locked {
+  opacity: 0.7;
+  cursor: not-allowed;
+  position: relative;
+}
+
+.character-item.locked img {
+  filter: grayscale(100%);
+}
+
+.lock-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(10px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: 16px;
+  padding: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.lock-icon {
+  width: 32px;
+  height: 32px;
+  color: rgba(255, 255, 255, 0.6);
+  margin-bottom: 8px;
+  transition: transform 0.3s ease, color 0.3s ease;
+}
+
+.lock-overlay:hover .lock-icon {
+  transform: scale(1.1);
+  color: white;
+}
+
+.unlock-cost {
+  font-size: 14px;
+  font-weight: 700;
+  color: white;
+  margin-bottom: 8px;
+}
+
+.unlock-progress-bar {
+  width: 100%;
+  height: 6px;
+  background: #e0e0e0;
+  border-radius: 3px;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+
+.unlock-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #9e9e9e 0%, #757575 100%);
+  transition: width 0.3s ease;
+}
+
+.unlock-btn {
+  padding: 6px 16px;
+  background: linear-gradient(135deg, #4caf50 0%, #66bb6a 100%);
+  color: white;
+  border: none;
+  border-radius: 16px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.unlock-btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.4);
+}
+
+.tier-badge {
+  padding: 4px 12px;
+  background: linear-gradient(135deg, #9e9e9e 0%, #757575 100%);
+  color: white;
+  border-radius: 12px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.pet-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+.pet-rate-badge {
+  padding: 4px 8px;
+  background: linear-gradient(135deg, #9e9e9e 0%, #757575 100%);
+  color: white;
+  border-radius: 10px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.active-badge {
+  padding: 3px 8px;
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  border-radius: 10px;
+  font-size: 9px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.char-name {
+  font-size: 13px !important;
+  color: rgba(255, 255, 255, 0.8) !important;
+  font-weight: 500 !important;
+}
+
+.character-item.unlocked:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 6px 16px rgba(255, 255, 255, 0.15);
+}
+
+/* Section Headers */
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  margin: 16px 0 12px 0;
+  border-radius: 16px;
+  font-weight: 600;
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.section-header h4 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: white;
+}
+
+.section-icon {
+  font-size: 18px;
+}
+
+.nft-section-header {
+  border-left: 3px solid rgba(255, 255, 255, 0.3);
+}
+
+.cpoint-section-header {
+  border-left: 3px solid rgba(255, 255, 255, 0.2);
+}
+
+.no-pets-message {
+  padding: 32px 16px;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 14px;
+}
+
+.nft-pet {
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  background: rgba(255, 255, 255, 0.05) !important;
+  backdrop-filter: blur(20px) !important;
+}
+
+.nft-pet:hover {
+  border-color: rgba(255, 255, 255, 0.3) !important;
+  box-shadow: 0 4px 12px rgba(255, 255, 255, 0.1) !important;
+}
+
+.nft-rate {
+  background: rgba(255, 255, 255, 0.15) !important;
+  color: white !important;
 }
 </style>
 

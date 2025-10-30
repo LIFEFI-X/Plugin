@@ -17,7 +17,8 @@ export default defineConfig({
         resources: [
           'asoul/**/*.png',
           'asoul/**/*.gif',
-          'asoul/*.png'
+          'asoul/*.png',
+          'Poppins/*.ttf'
         ],
         matches: ['<all_urls>']
       }

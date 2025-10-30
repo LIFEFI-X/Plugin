@@ -5,17 +5,54 @@ import type { GPTBalance, RewardRecord, Task } from '@/types/task'
 const STORAGE_KEYS = {
   GPT_BALANCE: 'gpt_balance',
   REWARD_RECORDS: 'reward_records',
-  TASKS: 'tasks'
+  TASKS: 'tasks',
+  ASOUL_CONFIG: 'ASOUL_CONFIG' // Use ASoulPet config for unified CPoint balance
 }
 
 /**
- * Retrieve GPT balance
+ * Get current pet's CPoint multiplier from ASoulPet config
+ */
+async function getCurrentPetMultiplier(): Promise<number> {
+  try {
+    const result = await browser.storage.sync.get(STORAGE_KEYS.ASOUL_CONFIG)
+    if (result[STORAGE_KEYS.ASOUL_CONFIG]) {
+      const config = JSON.parse(result[STORAGE_KEYS.ASOUL_CONFIG])
+
+      // CPoint Tier Config (must match ASoulPet.vue)
+      const GPT_RATES: Record<string, number> = {
+        'carol': 1.0,
+        'diana': 1.2,
+        'bella': 1.2,
+        'ava': 1.5,
+        'eileen': 1.5,
+        'luna': 2.0
+      }
+
+      const currentActor = config.currentActor || 'carol'
+      const multiplier = GPT_RATES[currentActor] || 1.0
+
+      console.log('[Reward] Current pet multiplier:', { actor: currentActor, multiplier })
+      return multiplier
+    }
+    return 1.0 // default multiplier
+  } catch (error) {
+    console.error('[Reward] Failed to get pet multiplier:', error)
+    return 1.0
+  }
+}
+
+/**
+ * Retrieve CPoint balance from ASoulPet unified config
  */
 export async function getGPTBalance(): Promise<GPTBalance> {
   try {
-    const result = await browser.storage.local.get(STORAGE_KEYS.GPT_BALANCE)
-    if (result[STORAGE_KEYS.GPT_BALANCE]) {
-      return JSON.parse(result[STORAGE_KEYS.GPT_BALANCE])
+    const result = await browser.storage.sync.get(STORAGE_KEYS.ASOUL_CONFIG)
+    if (result[STORAGE_KEYS.ASOUL_CONFIG]) {
+      const config = JSON.parse(result[STORAGE_KEYS.ASOUL_CONFIG])
+      return {
+        total: config.gptBalance || 0,
+        lastUpdate: Date.now()
+      }
     }
     // default balance
     return {
@@ -23,28 +60,49 @@ export async function getGPTBalance(): Promise<GPTBalance> {
       lastUpdate: Date.now()
     }
   } catch (error) {
-    console.error('[Reward] Failed to obtain GPT balance:', error)
+    console.error('[Reward] Failed to obtain CPoint balance:', error)
     return { total: 0, lastUpdate: Date.now() }
   }
 }
 
 /**
- * Update GPT balance
+ * Update CPoint balance in ASoulPet unified config
+ * @param amount - Base amount (will be multiplied by pet multiplier)
+ * @param applyMultiplier - Whether to apply pet multiplier (default: true)
  */
-export async function updateGPTBalance(amount: number): Promise<GPTBalance> {
+export async function updateGPTBalance(amount: number, applyMultiplier: boolean = true): Promise<GPTBalance> {
   try {
-    const balance = await getGPTBalance()
-    balance.total += amount
-    balance.lastUpdate = Date.now()
-    
-    await browser.storage.local.set({
-      [STORAGE_KEYS.GPT_BALANCE]: JSON.stringify(balance)
+    // Get current config
+    const result = await browser.storage.sync.get(STORAGE_KEYS.ASOUL_CONFIG)
+    let config = result[STORAGE_KEYS.ASOUL_CONFIG]
+      ? JSON.parse(result[STORAGE_KEYS.ASOUL_CONFIG])
+      : { gptBalance: 0 }
+
+    // Apply pet multiplier to reward
+    let finalAmount = amount
+    if (applyMultiplier) {
+      const multiplier = await getCurrentPetMultiplier()
+      finalAmount = Math.floor(amount * multiplier)
+      console.log('[Reward] Applying multiplier:', { base: amount, multiplier, final: finalAmount })
+    }
+
+    // Update balance
+    config.gptBalance = (config.gptBalance || 0) + finalAmount
+    config.lastGptUpdate = Date.now()
+
+    // Save back to storage
+    await browser.storage.sync.set({
+      [STORAGE_KEYS.ASOUL_CONFIG]: JSON.stringify(config)
     })
-    
-    console.log('[Reward] GPT balance updated:', balance.total)
-    return balance
+
+    console.log('[Reward] CPoint balance updated:', config.gptBalance, `(+${finalAmount})`)
+
+    return {
+      total: config.gptBalance,
+      lastUpdate: Date.now()
+    }
   } catch (error) {
-    console.error('[Reward] Failed to update GPT balance:', error)
+    console.error('[Reward] Failed to update CPoint balance:', error)
     throw error
   }
 }
@@ -142,11 +200,11 @@ export function getDefaultTasks(): Task[] {
       type: 'visit',
       platform: 'x',
       title: 'Visit X (Twitter)',
-      description: 'Earn GPT by spending time on X',
+      description: 'Earn CPoint by spending time on X',
       milestones: [
-        { duration: 20, reward: 50, claimed: false }, // 20 seconds -> 50 GPT (quick test)
-        { duration: 2 * 60, reward: 100, claimed: false }, // 2 minutes -> 100 GPT
-        { duration: 10 * 60, reward: 700, claimed: false } // 10 minutes -> 700 GPT
+        { duration: 20, reward: 50, claimed: false }, // 20 seconds -> 50 CPoint (quick test)
+        { duration: 2 * 60, reward: 100, claimed: false }, // 2 minutes -> 100 CPoint
+        { duration: 10 * 60, reward: 700, claimed: false } // 10 minutes -> 700 CPoint
       ],
       currentDuration: 0,
       isActive: false
@@ -156,10 +214,10 @@ export function getDefaultTasks(): Task[] {
       type: 'watch',
       platform: 'youtube',
       title: 'Watch YouTube',
-      description: 'Earn GPT by watching videos',
+      description: 'Earn CPoint by watching videos',
       milestones: [
-        { duration: 1 * 60, reward: 100, claimed: false }, // 1 minute -> 100 GPT
-        { duration: 5 * 60, reward: 500, claimed: false } // 5 minutes -> 500 GPT
+        { duration: 1 * 60, reward: 100, claimed: false }, // 1 minute -> 100 CPoint
+        { duration: 5 * 60, reward: 500, claimed: false } // 5 minutes -> 500 CPoint
       ],
       currentDuration: 0,
       isActive: false
@@ -196,30 +254,39 @@ export async function updateTaskProgress(taskId: string, duration: number): Prom
  */
 export async function claimMilestone(taskId: string, milestoneIndex: number): Promise<{ success: boolean; reward?: number; balance?: GPTBalance }> {
   try {
+    console.log('[Reward] claimMilestone called:', { taskId, milestoneIndex })
+
     const tasks = await getTasks()
     const task = tasks.find(t => t.id === taskId)
-    
+
     if (!task) {
+      console.error('[Reward] Task not found:', taskId)
       return { success: false }
     }
-    
+
     const milestone = task.milestones[milestoneIndex]
     if (!milestone || milestone.claimed) {
+      console.error('[Reward] Milestone invalid or already claimed:', { milestone, claimed: milestone?.claimed })
       return { success: false }
     }
-    
+
     // verify duration requirement
     if (task.currentDuration < milestone.duration) {
+      console.error('[Reward] Duration requirement not met:', { current: task.currentDuration, required: milestone.duration })
       return { success: false }
     }
-    
+
+    console.log('[Reward] Claiming milestone:', { baseReward: milestone.reward })
+
     // mark as claimed
     milestone.claimed = true
     await saveTasks(tasks)
-    
-    // update GPT balance
-    const balance = await updateGPTBalance(milestone.reward)
-    
+
+    // update CPoint balance with multiplier
+    console.log('[Reward] Calling updateGPTBalance with amount:', milestone.reward)
+    const balance = await updateGPTBalance(milestone.reward, true)
+    console.log('[Reward] Balance after update:', balance)
+
     // add reward record
     await addRewardRecord({
       taskId: task.id,
@@ -227,9 +294,14 @@ export async function claimMilestone(taskId: string, milestoneIndex: number): Pr
       milestone: milestoneIndex,
       reward: milestone.reward
     })
-    
-    console.log('[Reward] Milestone reward claimed:', { taskId, milestoneIndex, reward: milestone.reward })
-    
+
+    console.log('[Reward] Milestone reward claimed successfully:', {
+      taskId,
+      milestoneIndex,
+      baseReward: milestone.reward,
+      newBalance: balance.total
+    })
+
     return {
       success: true,
       reward: milestone.reward,

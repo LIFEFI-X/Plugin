@@ -15,11 +15,11 @@ export interface Task {
 // task milestone
 export interface TaskMilestone {
   duration: number // required duration in seconds
-  reward: number // reward GPT amount
+  reward: number // reward CPoint amount
   claimed: boolean // whether the reward is claimed
 }
 
-// GPT balance record
+// CPoint balance record
 export interface GPTBalance {
   total: number // total balance
   lastUpdate: number // last update timestamp
